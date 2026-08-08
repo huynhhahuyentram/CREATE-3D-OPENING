@@ -6,7 +6,8 @@ let ORI = "Z";
 function setOri(o) {
     ORI = o;
     document.querySelectorAll(".ori button").forEach(b => b.classList.remove("active"));
-    document.getElementById("o" + o.toLowerCase()).classList.add("active");
+    const btn = document.getElementById("o" + o.toLowerCase());
+    if (btn) btn.classList.add("active");
     draw();
 }
 
@@ -95,20 +96,17 @@ function projectISO(x, y, z, cx, cy) {
 
 /* 3. VẼ HÌNH HỘP 3D BO GÓC VỚI MÀU SÁNG HƠN NỀN */
 function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
-    // Lấy giá trị bo góc từ input
     let r1 = parseInputValue("r1");
     let r2 = parseInputValue("r2");
     let r3 = parseInputValue("r3");
     let r4 = parseInputValue("r4");
     
-    // Giới hạn bo góc không vượt quá kích thước
     let maxR = Math.min(d1, d2) / 2;
     r1 = Math.min(r1, maxR);
     r2 = Math.min(r2, maxR);
     r3 = Math.min(r3, maxR);
     r4 = Math.min(r4, maxR);
     
-    // Tỷ lệ bo góc theo scale
     let scaleR = Math.min(d1, d2) / Math.max(Math.abs(parseInputValue("dx")), Math.abs(parseInputValue("dy")), 1);
     let r1s = r1 * scaleR;
     let r2s = r2 * scaleR;
@@ -119,8 +117,6 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     let offsetX = cx - d1 / 2;
     let offsetY = cy + d3 / 2;
 
-    // Màu sắc cho nhãn theo Orientation (trùng với màu trục tọa độ)
-    // X = đỏ (#e74c3c), Y = xanh dương (#2980b9), Z = xanh lá (#27ae60)
     const labelColors = {
         'X': { l1: '#e74c3c', l2: '#2980b9', l3: '#27ae60' },
         'Y': { l1: '#e74c3c', l2: '#27ae60', l3: '#2980b9' },
@@ -132,7 +128,6 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     let labelColor2 = colorMap.l2;
     let labelColor3 = colorMap.l3;
 
-    // Màu sắc khung 3D
     const colors = {
         border: "#4a9eff",
         fill: "rgba(74, 158, 255, 0.18)",
@@ -142,19 +137,14 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
         shadow: "rgba(74, 158, 255, 0.08)"
     };
 
-    // Vẽ bóng đổ
     ctx.shadowColor = "rgba(74, 158, 255, 0.15)";
     ctx.shadowBlur = 20;
     ctx.shadowOffsetX = 5;
     ctx.shadowOffsetY = 10;
 
-    // Hàm vẽ góc bo tròn trên mặt phẳng XY (đáy và mặt trên)
     function drawRoundedRect(ox, oy, w, h, rTL, rTR, rBR, rBL, isTop) {
-        // Chuyển sang tọa độ isometric
-        const pts = [];
         const segments = 12;
         
-        // Hàm tạo điểm trên cung tròn
         function arcPoint(cx, cy, r, startAngle, endAngle, numSeg) {
             const pts = [];
             for (let i = 0; i <= numSeg; i++) {
@@ -166,20 +156,16 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
             return pts;
         }
         
-        // Điểm góc trên mặt phẳng XY
-        // Góc TL (trên trái)
         let pTL = {x: ox + rTL, y: oy};
         let pTR = {x: ox + w - rTR, y: oy};
         let pBR = {x: ox + w, y: oy + h - rBR};
         let pBL = {x: ox + rBL, y: oy + h};
         
-        // Các cung bo góc
         let arcTL = arcPoint(ox + rTL, oy + rTL, rTL, Math.PI, 3*Math.PI/2, segments);
         let arcTR = arcPoint(ox + w - rTR, oy + rTR, rTR, 3*Math.PI/2, 2*Math.PI, segments);
         let arcBR = arcPoint(ox + w - rBR, oy + h - rBR, rBR, 0, Math.PI/2, segments);
         let arcBL = arcPoint(ox + rBL, oy + h - rBL, rBL, Math.PI/2, Math.PI, segments);
         
-        // Gom tất cả điểm theo thứ tự
         const allPoints = [
             {x: pTL.x, y: pTL.y},
             ...arcTL,
@@ -191,11 +177,9 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
             ...arcBL
         ];
         
-        // Chuyển sang isometric
         return allPoints.map(p => projectISO(p.x, p.y, 0, offsetX, offsetY));
     }
     
-    // Vẽ đáy (mặt dưới)
     let bottomPoints = drawRoundedRect(0, 0, d1, d2, r1s, r2s, r3s, r4s, false);
     ctx.shadowBlur = 25;
     ctx.shadowOffsetX = 8;
@@ -212,11 +196,8 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     ctx.stroke();
     ctx.fill();
     
-    // Vẽ mặt trên
     let topPoints = drawRoundedRect(0, 0, d1, d2, r1s, r2s, r3s, r4s, true);
-    // Dịch lên theo chiều Z
     let topPointsOffset = topPoints.map(p => {
-        let zOffset = projectISO(0, 0, d3, 0, 0);
         return {x: p.x, y: p.y - d3};
     });
     
@@ -235,30 +216,26 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     ctx.stroke();
     ctx.fill();
     
-    // Reset shadow
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     
-    // Vẽ các cạnh đứng nối từ đáy lên mặt trên
     ctx.strokeStyle = colors.border;
     ctx.lineWidth = 1.5;
     ctx.globalAlpha = 0.6;
     
-    // Lấy các điểm góc của đáy và mặt trên
     const corners = [
-        {x: 0, y: 0},           // TL
-        {x: d1, y: 0},          // TR
-        {x: d1, y: d2},         // BR
-        {x: 0, y: d2}           // BL
+        {x: 0, y: 0},
+        {x: d1, y: 0},
+        {x: d1, y: d2},
+        {x: 0, y: d2}
     ];
     
-    // Điều chỉnh vị trí góc theo bo góc
     const cornerOffsets = [
-        {x: r1s, y: r1s},       // TL
-        {x: -r2s, y: r2s},      // TR
-        {x: -r3s, y: -r3s},     // BR
-        {x: r4s, y: -r4s}       // BL
+        {x: r1s, y: r1s},
+        {x: -r2s, y: r2s},
+        {x: -r3s, y: -r3s},
+        {x: r4s, y: -r4s}
     ];
     
     for (let i = 0; i < 4; i++) {
@@ -276,12 +253,10 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     
     ctx.globalAlpha = 1;
     
-    // Vẽ các đường nét mờ cho các cạnh khuất
     ctx.strokeStyle = "rgba(74, 158, 255, 0.2)";
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
     
-    // Cạnh khuất phía sau
     const hiddenCorners = [
         {x: 0, y: d2, ox: r4s, oy: -r4s},
         {x: d1, y: d2, ox: -r3s, oy: -r3s}
@@ -298,25 +273,23 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     }
     ctx.setLineDash([]);
     
-    // Vẽ nhãn kích thước với màu theo Orientation
     ctx.font = "bold 14px Segoe UI";
     ctx.shadowColor = "rgba(0,0,0,0.5)";
     ctx.shadowBlur = 8;
     ctx.shadowOffsetX = 1;
     ctx.shadowOffsetY = 1;
     
-    // Vị trí và màu sắc cho từng nhãn
     let labelPositions = [
-        {x: d1/2, y: 0, z: 0, color: labelColor1},    // L - màu đỏ
-        {x: d1, y: d2/2, z: d3, color: labelColor2},   // W - màu xanh dương
-        {x: 0, y: 0, z: d3/2, color: labelColor3}      // H - màu xanh lá
+        {x: d1/2, y: 0, z: 0, color: labelColor1},
+        {x: d1, y: d2/2, z: d3, color: labelColor2},
+        {x: 0, y: 0, z: d3/2, color: labelColor3}
     ];
     
     let labels = [lbl1, lbl2, lbl3];
     let labelOffsets = [
-        {x: 0, y: -15},  // Length - phía trên
-        {x: 12, y: -5},  // Width - bên phải
-        {x: -50, y: 5}   // Height - bên trái
+        {x: 0, y: -15},
+        {x: 12, y: -5},
+        {x: -50, y: 5}
     ];
     
     for (let i = 0; i < 3; i++) {
@@ -325,7 +298,6 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
         let lz = labelPositions[i].z;
         let p = projectISO(lx, ly, lz, offsetX, offsetY);
         
-        // Đặt màu cho từng nhãn
         ctx.fillStyle = labelPositions[i].color;
         ctx.fillText(labels[i], p.x + labelOffsets[i].x, p.y + labelOffsets[i].y);
     }
@@ -337,11 +309,12 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
 
 function log(t) {
     const chatBox = document.getElementById("chat");
-    chatBox.innerHTML += `<div>${t}</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
+    if (chatBox) {
+        chatBox.innerHTML += `<div>${t}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 }
 
-// ===== VOICE RECOGNITION CẢI TIẾN - NHẬN DIỆN TẤT CẢ CÁC LOẠI SỐ =====
 function voice() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
@@ -357,294 +330,120 @@ function voice() {
     u.lang = "vi-VN";
     u.rate = 0.95;
 
-    let hasReceivedResult = false;
-
+    // Chỉ bật Mic khi câu chào đã phát thành công toàn bộ
     u.onend = () => {
         log("🔴 <i>Đang nghe...</i>");
-        
         let r = new SR();
-        r.lang = "vi-VN";
+        r.lang = "vi-VN"; 
         r.continuous = true;
-        r.interimResults = true;
-        r.maxAlternatives = 5;
+        r.interimResults = false;
 
         let silenceTimer = null;
-        let finalText = "";
-        let isProcessing = false;
 
-        r.onstart = () => {
-            hasReceivedResult = false;
-        };
-
-        r.onresult = (e) => {
-            hasReceivedResult = true;
-            let final = "";
-            
-            for (let i = e.resultIndex; i < e.results.length; i++) {
-                if (e.results[i].isFinal) {
-                    final += e.results[i][0].transcript;
-                }
-            }
-            
-            if (final) {
-                finalText = final;
-            }
+        r.onresult = e => {
+            let text = e.results[e.results.length - 1][0].transcript;
             
             clearTimeout(silenceTimer);
-            
-            if (finalText && !isProcessing) {
-                isProcessing = true;
-                silenceTimer = setTimeout(() => {
-                    try {
-                        r.stop();
-                    } catch(e) {}
-                    processFullVoiceNLP(finalText);
-                    isProcessing = false;
-                }, 1000);
-            }
+            silenceTimer = setTimeout(() => {
+                r.stop();
+                processFullVoiceNLP(text);
+            }, 2500);
         };
 
-        r.onerror = (e) => {
-            if (e.error === 'no-speech') {
-                return;
-            }
-            
-            if (e.error === 'not-allowed') {
-                let errorMsg = "Vui lòng cho phép truy cập microphone!";
-                log("🤖 " + errorMsg);
-                speak(errorMsg);
-                return;
-            }
-            
-            if (hasReceivedResult && finalText && !isProcessing) {
-                isProcessing = true;
-                processFullVoiceNLP(finalText);
-                isProcessing = false;
-            }
-        };
-
-        r.onend = () => {
-            if (finalText && !isProcessing) {
-                isProcessing = true;
-                processFullVoiceNLP(finalText);
-                isProcessing = false;
-            }
-        };
-
-        try {
-            r.start();
-        } catch(e) {
-            let errorMsg = "Không thể truy cập microphone!";
+        r.onerror = () => {
+            let errorMsg = "Chưa nhận diện được thông số, vui lòng thử lại!";
             log("🤖 " + errorMsg);
             speak(errorMsg);
-        }
+        };
+
+        r.start();
     };
 
     window.speechSynthesis.speak(u);
 }
 
-// HÀM CHUYỂN ĐỔI SỐ TỪ CHỮ SANG SỐ
-function convertVietnameseNumberToNumber(text) {
-    // Xử lý các trường hợp đặc biệt: "một" -> "1", "hai" -> "2", ...
-    const numberMap = {
-        'không': '0', 'một': '1', 'hai': '2', 'ba': '3', 'bốn': '4',
-        'năm': '5', 'sáu': '6', 'bảy': '7', 'tám': '8', 'chín': '9',
-        'mười': '10', 'trăm': '100', 'ngàn': '1000', 'nghìn': '1000',
-        'triệu': '1000000', 'tỷ': '1000000000', 'tỉ': '1000000000',
-        'âm': '-', 'trừ': '-', 'rưỡi': '.5', 'phẩy': '.'
-    };
-    
-    // Xử lý số âm
-    let isNegative = false;
-    let processedText = text;
-    
-    // Kiểm tra từ "âm" hoặc "trừ" ở đầu
-    if (/^(âm|trừ)\s+/i.test(processedText)) {
-        isNegative = true;
-        processedText = processedText.replace(/^(âm|trừ)\s+/i, '');
-    }
-    
-    // Thay thế từng từ bằng số
-    let result = processedText;
-    for (let [word, num] of Object.entries(numberMap)) {
-        // Chỉ thay thế khi từ đứng riêng
-        let regex = new RegExp('\\b' + word + '\\b', 'gi');
-        result = result.replace(regex, num);
-    }
-    
-    // Xử lý dấu phẩy và dấu chấm
-    result = result.replace(/\s*,\s*/g, ',');
-    result = result.replace(/\s*\.\s*/g, '.');
-    
-    // Xóa khoảng trắng thừa
-    result = result.replace(/\s+/g, ' ');
-    result = result.trim();
-    
-    // Nếu có dấu trừ
-    if (isNegative && !result.startsWith('-')) {
-        result = '-' + result;
-    }
-    
-    return result;
-}
-
 function processFullVoiceNLP(t) {
     log("👤 " + t);
 
-    // 1. CHUẨN HÓA VĂN BẢN - XỬ LÝ SỐ TỰ NHIÊN
+    // 1. Chuẩn hóa giọng nói tự nhiên
     let str = t.toLowerCase()
                .replace(/\b(âm|trừ)\b/g, "-")
                .replace(/\bphẩy\b/g, ",")
-               .replace(/\bchấm\b/g, "")
-               .replace(/\b(độ|dộ)\b/g, "")
-               .replace(/\b(milimét|mm|li|milimet)\b/g, "")
-               .replace(/\b(khoảng|khoang|khoản)\b/g, "")
-               .replace(/\b(và|với|vơi)\b/g, " ");
+               .replace(/\bchấm\b/g, "");
 
-    // 2. XỬ LÝ SỐ HÀNG TRĂM, NGHÌN, TRIỆU, TỶ
-    // Ví dụ: "một trăm hai mươi ba" -> "123"
-    // "hai nghìn ba trăm bốn mươi lăm" -> "2345"
-    // "một triệu hai trăm ba mươi tư nghìn năm trăm sáu mươi bảy" -> "1234567"
-    
-    // Chuyển đổi số từ chữ sang số
-    let numberStr = convertVietnameseNumberToNumber(str);
-    
-    // Tìm tất cả số trong câu (bao gồm số âm, số thập phân)
-    let allNumbers = numberStr.match(/-?\d+[.,]?\d*/g) || [];
-    
-    // Làm sạch số
-    let cleanNumbers = allNumbers.map(n => {
-        // Loại bỏ dấu chấm hàng nghìn
-        n = n.replace(/\./g, '');
-        // Chuyển dấu phẩy thành dấu chấm cho parseFloat
-        n = n.replace(',', '.');
-        return n;
-    });
+    // 2. Xóa bỏ toàn bộ dấu chấm phân cách hàng nghìn (VD: 5.000.000,5 -> 5000000,5)
+    str = str.replace(/(\d+)\.(\d+)/g, '$1$2');
 
     let updatedCount = 0;
-    let detectedInfo = [];
 
+    // Chuyển dấu phẩy thành dấu chấm tiêu chuẩn cho thẻ Input HTML
     const cleanNumberString = (numStr) => {
         if (!numStr) return "0";
         numStr = numStr.trim().replace(/\s+/g, '');
-        // Loại bỏ dấu chấm hàng nghìn
-        numStr = numStr.replace(/\./g, '');
-        // Chuyển dấu phẩy thành dấu chấm
-        numStr = numStr.replace(',', '.');
-        return numStr;
+        return numStr.replace(',', '.');
     };
 
-    // Hàm tìm số gần nhất với từ khóa
     const findVal = (keywords) => {
         for (let kw of keywords) {
-            // Tìm từ khóa và số đằng sau
-            let regex = new RegExp(`${kw}(?:\\s*(?:là|bằng|:|\\s))?\\s*(-?\\s*[\\d.,]+)`, "i");
+            // Regex hỗ trợ trích xuất chính xác mọi loại số: số âm, số dương, số hàng nghìn/trăm nghìn, số thập phân
+            let regex = new RegExp(`${kw}(?:\\s+là|\\s+bằng|\\s*[:=])?\\s*(-?\\s*\\d+(?:,\\d+)?)`, "i");
             let match = str.match(regex);
             if (match) {
-                let val = cleanNumberString(match[1]);
-                if (val) return val;
-            }
-            
-            // Tìm từ khóa và số đằng trước
-            regex = new RegExp(`(-?\\s*[\\d.,]+)\\s*(?:\\s*(?:là|bằng|:|\\s))?\\s*${kw}`, "i");
-            match = str.match(regex);
-            if (match) {
-                let val = cleanNumberString(match[1]);
-                if (val) return val;
+                return cleanNumberString(match[1]);
             }
         }
         return null;
     };
 
-    // 1. NHẬN DIỆN ORIENTATION
-    if (/(trục|hướng|ori)\s*(theo\s*trục\s*)?x\b/i.test(str) || 
-        /\bx\b/i.test(str) && !/(trục|hướng|ori)\s*(theo\s*trục\s*)?(y|z)/i.test(str)) { 
-        setOri('X'); 
-        updatedCount++; 
-        detectedInfo.push("Orientation: X");
-    }
-    else if (/(trục|hướng|ori)\s*(theo\s*trục\s*)?y\b/i.test(str) || 
-             /\by\b/i.test(str) && !/(trục|hướng|ori)\s*(theo\s*trục\s*)?(x|z)/i.test(str)) { 
-        setOri('Y'); 
-        updatedCount++; 
-        detectedInfo.push("Orientation: Y");
-    }
-    else if (/(trục|hướng|ori)\s*(theo\s*trục\s*)?(z|zét|zed|dét)\b/i.test(str) || 
-             /\b(z|zét|zed)\b/i.test(str) && !/(trục|hướng|ori)\s*(theo\s*trục\s*)?(x|y)/i.test(str)) { 
-        setOri('Z'); 
-        updatedCount++; 
-        detectedInfo.push("Orientation: Z");
+    // 3. NHẬN DIỆN LỆNH NÚT BẤM BÊN DƯỚI
+    if (/(xuất mac|export|tải file|tạo file|lưu file|ok)/i.test(str)) {
+        saveFile();
+        updatedCount++;
+    } else if (/(trợ giúp|hướng dẫn|help)/i.test(str)) {
+        help();
+        updatedCount++;
+    } else if (/(thư viện|library)/i.test(str)) {
+        library();
+        updatedCount++;
+    } else if (/(đặt lại|reset|làm mới|xóa hết)/i.test(str)) {
+        reset();
+        updatedCount++;
     }
 
-    // 2. NHẬN DIỆN POSITION (X, Y, Z)
-    let posX = findVal(["tọa độ x", "vị trí x", "pos x", "position x", "đồ ít", "tọa độ ít", "x"]);
+    // 4. NHẬN DIỆN ORIENTATION
+    if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?x\b/i.test(str)) { setOri('X'); updatedCount++; }
+    else if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?y\b/i.test(str)) { setOri('Y'); updatedCount++; }
+    else if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?(z|zét|zed)\b/i.test(str)) { setOri('Z'); updatedCount++; }
+
+    // 5. NHẬN DIỆN POSITION (Tọa độ X, Y, Z - bắt lỗi đồng âm từ "ít", "xy", "zét")
+    let posX = findVal(["tọa độ x", "vị trí x", "pos x", "position x", "đồ ít", "tọa độ ít", "tọa độ xy", "x"]);
     let posY = findVal(["tọa độ y", "vị trí y", "pos y", "position y", "y"]);
-    let posZ = findVal(["tọa độ zét", "tọa độ zed", "tọa độ z", "vị trí z", "pos z", "position z", "zét", "zed", "z"]);
+    let posZ = findVal(["tọa độ zét", "tọa độ zed", "tọa độ z", "vị trí z", "pos z", "position z", "z"]);
 
-    if (posX !== null) { 
-        document.getElementById("px").value = posX; 
-        updatedCount++; 
-        detectedInfo.push(`X: ${posX}mm`);
-    }
-    if (posY !== null) { 
-        document.getElementById("py").value = posY; 
-        updatedCount++; 
-        detectedInfo.push(`Y: ${posY}mm`);
-    }
-    if (posZ !== null) { 
-        document.getElementById("pz").value = posZ; 
-        updatedCount++; 
-        detectedInfo.push(`Z: ${posZ}mm`);
-    }
+    if (posX !== null) { document.getElementById("px").value = posX; updatedCount++; }
+    if (posY !== null) { document.getElementById("py").value = posY; updatedCount++; }
+    if (posZ !== null) { document.getElementById("pz").value = posZ; updatedCount++; }
 
-    // 3. NHẬN DIỆN DIMENSION (L, W, H)
+    // 6. NHẬN DIỆN DIMENSION (Kích thước L, W, H)
     let len = findVal(["chiều dài", "độ dài", "dài", "length", "l"]);
     let wid = findVal(["chiều rộng", "độ rộng", "rộng", "width", "w"]);
     let hei = findVal(["chiều cao", "độ cao", "cao", "height", "h"]);
 
-    if (len !== null) { 
-        document.getElementById("dx").value = len; 
-        updatedCount++; 
-        detectedInfo.push(`Length: ${len}mm`);
-    }
-    if (wid !== null) { 
-        document.getElementById("dy").value = wid; 
-        updatedCount++; 
-        detectedInfo.push(`Width: ${wid}mm`);
-    }
-    if (hei !== null) { 
-        document.getElementById("dz").value = hei; 
-        updatedCount++; 
-        detectedInfo.push(`Height: ${hei}mm`);
-    }
+    if (len !== null) { document.getElementById("dx").value = len; updatedCount++; }
+    if (wid !== null) { document.getElementById("dy").value = wid; updatedCount++; }
+    if (hei !== null) { document.getElementById("dz").value = hei; updatedCount++; }
 
-    // 4. NHẬN DIỆN CORNER RADIUS (R1, R2, R3, R4)
-    let rad1 = findVal(["r1", "radius 1", "bo góc 1", "bán kính 1", "góc 1"]);
-    let rad2 = findVal(["r2", "radius 2", "bo góc 2", "bán kính 2", "góc 2"]);
-    let rad3 = findVal(["r3", "radius 3", "bo góc 3", "bán kính 3", "góc 3"]);
-    let rad4 = findVal(["r4", "radius 4", "bo góc 4", "bán kính 4", "góc 4"]);
+    // 7. NHẬN DIỆN CORNER RADIUS (R1, R2, R3, R4)
+    let rad1 = findVal(["r1", "radius 1", "bo góc 1", "bán kính 1"]);
+    let rad2 = findVal(["r2", "radius 2", "bo góc 2", "bán kính 2"]);
+    let rad3 = findVal(["r3", "radius 3", "bo góc 3", "bán kính 3"]);
+    let rad4 = findVal(["r4", "radius 4", "bo góc 4", "bán kính 4"]);
     let radAll = findVal(["bo góc", "bán kính", "radius", "r"]);
 
-    if (rad1 !== null) { 
-        document.getElementById("r1").value = rad1; 
-        updatedCount++; 
-        detectedInfo.push(`R1: ${rad1}mm`);
-    }
-    if (rad2 !== null) { 
-        document.getElementById("r2").value = rad2; 
-        updatedCount++; 
-        detectedInfo.push(`R2: ${rad2}mm`);
-    }
-    if (rad3 !== null) { 
-        document.getElementById("r3").value = rad3; 
-        updatedCount++; 
-        detectedInfo.push(`R3: ${rad3}mm`);
-    }
-    if (rad4 !== null) { 
-        document.getElementById("r4").value = rad4; 
-        updatedCount++; 
-        detectedInfo.push(`R4: ${rad4}mm`);
-    }
+    if (rad1 !== null) { document.getElementById("r1").value = rad1; updatedCount++; }
+    if (rad2 !== null) { document.getElementById("r2").value = rad2; updatedCount++; }
+    if (rad3 !== null) { document.getElementById("r3").value = rad3; updatedCount++; }
+    if (rad4 !== null) { document.getElementById("r4").value = rad4; updatedCount++; }
     
     if (radAll !== null && rad1 === null && rad2 === null && rad3 === null && rad4 === null) {
         document.getElementById("r1").value = radAll;
@@ -652,65 +451,22 @@ function processFullVoiceNLP(t) {
         document.getElementById("r3").value = radAll;
         document.getElementById("r4").value = radAll;
         updatedCount++;
-        detectedInfo.push(`All Radius: ${radAll}mm`);
     }
 
-    // 5. NHẬN DIỆN LỆNH CHO CÁC NÚT CHỨC NĂNG
-    if (/(export|save|lưu|tạo|tạo file|xuất|xuất file)/i.test(str) && updatedCount === 0) {
-        saveFile();
-        log("📁 Đã xuất file theo yêu cầu!");
-        speak("Đã xuất file thành công!");
-        return;
-    }
-    
-    if (/(reset|làm mới|đặt lại|mặc định)/i.test(str) && updatedCount === 0) {
-        reset();
-        log("🔄 Đã reset tất cả thông số!");
-        speak("Đã reset thành công!");
-        return;
-    }
-    
-    if (/(help|hướng dẫn|giúp|trợ giúp)/i.test(str) && updatedCount === 0) {
-        help();
-        log("❓ Đang mở hướng dẫn!");
-        speak("Đang mở hướng dẫn!");
-        return;
-    }
-    
-    if (/(library|thư viện|kho|mở thư viện)/i.test(str) && updatedCount === 0) {
-        library();
-        return;
-    }
-
-    // 6. NẾU KHÔNG CÓ TỪ KHÓA, THỬ NHẬN DIỆN CHUỖI SỐ
+    // 8. Nếu nói dải số tự do liên tiếp (VD: "-200,5 3000,8 -4500")
     if (updatedCount === 0) {
-        // Lấy tất cả số từ text đã chuẩn hóa
-        let rawNums = str.match(/-?\d+[.,]?\d*/g);
-        if (!rawNums || rawNums.length === 0) {
-            // Thử lấy từ chuỗi đã chuyển đổi số từ chữ
-            rawNums = numberStr.match(/-?\d+[.,]?\d*/g);
-        }
-        
+        let rawNums = str.match(/-?\d+(,\d+)?/g);
         if (rawNums && rawNums.length >= 3) {
-            let cleanNums = rawNums.map(n => cleanNumberString(n));
-            // Lấy 3 số đầu tiên cho L, W, H
-            let vals = cleanNums.filter(n => n !== '0' && n !== '');
-            while (vals.length < 3) {
-                vals.push('0');
-            }
-            document.getElementById("dx").value = vals[0] || 0;
-            document.getElementById("dy").value = vals[1] || 0;
-            document.getElementById("dz").value = vals[2] || 0;
+            document.getElementById("dx").value = cleanNumberString(rawNums[0]);
+            document.getElementById("dy").value = cleanNumberString(rawNums[1]);
+            document.getElementById("dz").value = cleanNumberString(rawNums[2]);
             updatedCount = 3;
-            detectedInfo.push(`Length: ${vals[0]}mm, Width: ${vals[1]}mm, Height: ${vals[2]}mm`);
         }
     }
 
-    // 7. PHẢN HỒI KẾT QUẢ
+    // PHẢN HỒI VỚI BOX CHAT VÀ PHÁT ÂM
     if (updatedCount > 0) {
         draw();
-        let detailMsg = "✅ Đã nhận diện: " + detectedInfo.join(", ");
-        log("🤖 " + detailMsg);
         let successMsg = "File của bạn đã được tạo xong";
         log("🤖 " + successMsg);
         speak(successMsg);
@@ -735,4 +491,97 @@ function saveFile() {
     let py = parseInputValue("py");
     let pz = parseInputValue("pz");
 
-    let
+    let L = parseInputValue("dx");
+    let W = parseInputValue("dy");
+    let H = parseInputValue("dz");
+
+    let r1 = parseInputValue("r1");
+    let r2 = parseInputValue("r2");
+    let r3 = parseInputValue("r3");
+    let r4 = parseInputValue("r4");
+
+    let oriStr = "ORI Y is Y and Z is Z";
+    if (ORI === "X") {
+        oriStr = "ORI Y is Y and Z is X";
+    } else if (ORI === "Y") {
+        oriStr = "ORI Y is -X and Z is Y";
+    } else if (ORI === "Z") {
+        oriStr = "ORI Y is Y and Z is Z";
+    }
+
+    let data = `NEW EQUIPMENT
+USRCOG ( X ( 0 ) Y ( 0 ) Z ( 0 ) )
+USRWCO ( X ( 0 ) Y ( 0 ) Z ( 0 ) )
+POS X ${px}mm Y ${py}mm Z ${pz}mm
+${oriStr}
+BUIL false
+DSCO unset
+PTSP unset
+INSC unset
+
+NEW EXTRUSION
+ORI Y is -Y and Z is Z
+LEVE 0 2
+HEIG ${H}mm
+
+NEW LOOP
+
+NEW VERTEX
+FRAD ${r1}mm
+
+END
+NEW VERTEX
+POS X 0mm Y ${W}mm Z 0mm
+FRAD ${r2}mm
+
+END
+NEW VERTEX
+POS X ${L}mm Y ${W}mm Z 0mm
+FRAD ${r3}mm
+
+END
+NEW VERTEX
+POS X ${L}mm Y 0mm Z 0mm
+FRAD ${r4}mm
+
+END
+END
+END
+END`;
+
+    let blob = new Blob([data], { type: "text/plain" });
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "Opening.mac";
+    a.click();
+}
+
+function reset() {
+    document.getElementById("px").value = 0;
+    document.getElementById("py").value = 0;
+    document.getElementById("pz").value = 0;
+    document.getElementById("dx").value = 0;
+    document.getElementById("dy").value = 0;
+    document.getElementById("dz").value = 0;
+    document.getElementById("r1").value = 150;
+    document.getElementById("r2").value = 150;
+    document.getElementById("r3").value = 150;
+    document.getElementById("r4").value = 150;
+    setOri('Z');
+}
+
+function help() {
+    window.open("https://drive.google.com/file/d/14NNDzXSCG63m1yQZb51tZhrZfd5k8KPf/view?usp=sharing");
+}
+
+function library() {
+    log("📚 Đang mở thư viện...");
+    alert("Chức năng Library đang được phát triển!");
+}
+
+document.querySelectorAll("input").forEach(i => {
+    i.addEventListener("input", draw);
+});
+
+window.addEventListener("resize", draw);
+draw();
