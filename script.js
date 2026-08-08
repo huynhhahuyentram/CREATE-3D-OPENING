@@ -44,11 +44,11 @@ function draw() {
     let cy = c.height / 2 + 30;
 
     if (ORI === "Z") {
-        drawBox3DSharp(cx, cy, l, w, h, `L=${L}`, `W=${W}`, `H=${H}`, 'Z');
+        drawBox3DSharp(cx, cy, l, w, h, `L=${L}`, `W=${W}`, `H=${H}`);
     } else if (ORI === "X") {
-        drawBox3DSharp(cx, cy, h, w, l, `H=${H}`, `W=${W}`, `L=${L}`, 'X');
+        drawBox3DSharp(cx, cy, h, w, l, `H=${H}`, `W=${W}`, `L=${L}`);
     } else if (ORI === "Y") {
-        drawBox3DSharp(cx, cy, l, h, w, `L=${L}`, `H=${H}`, `W=${W}`, 'Y');
+        drawBox3DSharp(cx, cy, l, h, w, `L=${L}`, `H=${H}`, `W=${W}`);
     }
 }
 
@@ -94,7 +94,7 @@ function projectISO(x, y, z, cx, cy) {
 }
 
 /* 3. VẼ HÌNH HỘP 3D BO GÓC VỚI MÀU SÁNG HƠN NỀN */
-function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
+function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3) {
     // Lấy giá trị bo góc từ input
     let r1 = parseInputValue("r1");
     let r2 = parseInputValue("r2");
@@ -119,20 +119,7 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     let offsetX = cx - d1 / 2;
     let offsetY = cy + d3 / 2;
 
-    // Màu sắc cho nhãn theo Orientation (trùng với màu trục tọa độ)
-    // X = đỏ (#e74c3c), Y = xanh dương (#2980b9), Z = xanh lá (#27ae60)
-    const labelColors = {
-        'X': { l1: '#e74c3c', l2: '#2980b9', l3: '#27ae60' },
-        'Y': { l1: '#e74c3c', l2: '#27ae60', l3: '#2980b9' },
-        'Z': { l1: '#e74c3c', l2: '#2980b9', l3: '#27ae60' }
-    };
-    
-    let colorMap = labelColors[ori] || labelColors['Z'];
-    let labelColor1 = colorMap.l1;
-    let labelColor2 = colorMap.l2;
-    let labelColor3 = colorMap.l3;
-
-    // Màu sắc khung 3D
+    // Màu sắc sáng hơn nền (dark mode friendly)
     const colors = {
         border: "#4a9eff",
         fill: "rgba(74, 158, 255, 0.18)",
@@ -298,20 +285,22 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     }
     ctx.setLineDash([]);
     
-    // Vẽ nhãn kích thước với màu theo Orientation
+    // Vẽ nhãn kích thước
+    ctx.fillStyle = colors.label;
     ctx.font = "bold 14px Segoe UI";
     ctx.shadowColor = "rgba(0,0,0,0.5)";
     ctx.shadowBlur = 8;
     ctx.shadowOffsetX = 1;
     ctx.shadowOffsetY = 1;
     
-    // Vị trí và màu sắc cho từng nhãn
+    // Vị trí nhãn
     let labelPositions = [
-        {x: d1/2, y: 0, z: 0, color: labelColor1},    // L - màu đỏ
-        {x: d1, y: d2/2, z: d3, color: labelColor2},   // W - màu xanh dương
-        {x: 0, y: 0, z: d3/2, color: labelColor3}      // H - màu xanh lá
+        {x: d1/2, y: 0, z: 0},           // Length
+        {x: d1, y: d2/2, z: d3},          // Width
+        {x: 0, y: 0, z: d3/2}             // Height
     ];
     
+    // Điều chỉnh theo bo góc
     let labels = [lbl1, lbl2, lbl3];
     let labelOffsets = [
         {x: 0, y: -15},  // Length - phía trên
@@ -324,9 +313,6 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
         let ly = labelPositions[i].y;
         let lz = labelPositions[i].z;
         let p = projectISO(lx, ly, lz, offsetX, offsetY);
-        
-        // Đặt màu cho từng nhãn
-        ctx.fillStyle = labelPositions[i].color;
         ctx.fillText(labels[i], p.x + labelOffsets[i].x, p.y + labelOffsets[i].y);
     }
     
@@ -341,9 +327,7 @@ function log(t) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// ===== CHỈ SỬA ĐÚNG 1 DÒNG NÀY =====
 function voice() {
-    // SỬA: Thêm kiểm tra cho cả 2 loại trình duyệt (Chrome dùng webkit, các trình duyệt khác dùng chuẩn)
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
         alert("Trình duyệt của bạn chưa hỗ trợ Voice!");
@@ -390,7 +374,6 @@ function voice() {
 
     window.speechSynthesis.speak(u);
 }
-// ===== KẾT THÚC PHẦN SỬA =====
 
 function processFullVoiceNLP(t) {
     log("👤 " + t);
@@ -587,11 +570,6 @@ function reset() {
 
 function help() {
     window.open("https://drive.google.com/file/d/14NNDzXSCG63m1yQZb51tZhrZfd5k8KPf/view?usp=sharing");
-}
-
-function library() {
-    log("📚 Đang mở thư viện...");
-    alert("Chức năng Library đang được phát triển!");
 }
 
 document.querySelectorAll("input").forEach(i => {
