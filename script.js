@@ -21,7 +21,7 @@ function parseInputValue(id) {
 
 function draw() {
     c.width = c.offsetWidth;
-    c.height = 280;
+    c.height = 200;  // ← SỬA: Giảm từ 280 xuống 200 để khung 3D nhỏ lại
 
     let L = parseInputValue("dx");
     let W = parseInputValue("dy");
@@ -57,7 +57,7 @@ function drawAxis() {
     ctx.lineWidth = 2.5;
     ctx.font = "bold 13px Segoe UI";
 
-    let x0 = 50, y0 = 220;
+    let x0 = 50, y0 = 170;  // ← SỬA: Dịch trục tọa độ lên trên cho phù hợp với khung nhỏ hơn
 
     ctx.strokeStyle = "#e74c3c";
     ctx.fillStyle = "#e74c3c";
