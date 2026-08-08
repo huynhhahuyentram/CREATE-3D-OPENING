@@ -93,62 +93,232 @@ function projectISO(x, y, z, cx, cy) {
     };
 }
 
-/* 3. VẼ HÌNH HỘP CHỮ NHẬT 3D PHẲNG KHÔNG BO GÓC */
+/* 3. VẼ HÌNH HỘP 3D BO GÓC VỚI MÀU SÁNG HƠN NỀN */
 function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3) {
-    ctx.lineWidth = 1.8;
+    // Lấy giá trị bo góc từ input
+    let r1 = parseInputValue("r1");
+    let r2 = parseInputValue("r2");
+    let r3 = parseInputValue("r3");
+    let r4 = parseInputValue("r4");
+    
+    // Giới hạn bo góc không vượt quá kích thước
+    let maxR = Math.min(d1, d2) / 2;
+    r1 = Math.min(r1, maxR);
+    r2 = Math.min(r2, maxR);
+    r3 = Math.min(r3, maxR);
+    r4 = Math.min(r4, maxR);
+    
+    // Tỷ lệ bo góc theo scale
+    let scaleR = Math.min(d1, d2) / Math.max(Math.abs(parseInputValue("dx")), Math.abs(parseInputValue("dy")), 1);
+    let r1s = r1 * scaleR;
+    let r2s = r2 * scaleR;
+    let r3s = r3 * scaleR;
+    let r4s = r4 * scaleR;
+    
+    ctx.lineWidth = 2;
     let offsetX = cx - d1 / 2;
     let offsetY = cy + d3 / 2;
 
-    let b0 = projectISO(0, 0, 0, offsetX, offsetY);
-    let b1 = projectISO(d1, 0, 0, offsetX, offsetY);
-    let b2 = projectISO(d1, d2, 0, offsetX, offsetY);
-    let b3 = projectISO(0, d2, 0, offsetX, offsetY);
+    // Màu sắc sáng hơn nền (dark mode friendly)
+    const colors = {
+        border: "#4a9eff",
+        fill: "rgba(74, 158, 255, 0.18)",
+        borderTop: "#6ab0ff",
+        fillTop: "rgba(74, 158, 255, 0.10)",
+        label: "#e8edf5",
+        shadow: "rgba(74, 158, 255, 0.08)"
+    };
 
-    let t0 = projectISO(0, 0, d3, offsetX, offsetY);
-    let t1 = projectISO(d1, 0, d3, offsetX, offsetY);
-    let t2 = projectISO(d1, d2, d3, offsetX, offsetY);
-    let t3 = projectISO(0, d2, d3, offsetX, offsetY);
+    // Vẽ bóng đổ
+    ctx.shadowColor = "rgba(74, 158, 255, 0.15)";
+    ctx.shadowBlur = 20;
+    ctx.shadowOffsetX = 5;
+    ctx.shadowOffsetY = 10;
 
-    ctx.strokeStyle = "#0000ff";
-    ctx.fillStyle = "rgba(59, 130, 246, 0.12)";
-
+    // Hàm vẽ góc bo tròn trên mặt phẳng XY (đáy và mặt trên)
+    function drawRoundedRect(ox, oy, w, h, rTL, rTR, rBR, rBL, isTop) {
+        // Chuyển sang tọa độ isometric
+        const pts = [];
+        const segments = 12;
+        
+        // Hàm tạo điểm trên cung tròn
+        function arcPoint(cx, cy, r, startAngle, endAngle, numSeg) {
+            const pts = [];
+            for (let i = 0; i <= numSeg; i++) {
+                const t = startAngle + (endAngle - startAngle) * (i / numSeg);
+                const px = cx + r * Math.cos(t);
+                const py = cy + r * Math.sin(t);
+                pts.push({x: px, y: py});
+            }
+            return pts;
+        }
+        
+        // Điểm góc trên mặt phẳng XY
+        // Góc TL (trên trái)
+        let pTL = {x: ox + rTL, y: oy};
+        let pTR = {x: ox + w - rTR, y: oy};
+        let pBR = {x: ox + w, y: oy + h - rBR};
+        let pBL = {x: ox + rBL, y: oy + h};
+        
+        // Các cung bo góc
+        let arcTL = arcPoint(ox + rTL, oy + rTL, rTL, Math.PI, 3*Math.PI/2, segments);
+        let arcTR = arcPoint(ox + w - rTR, oy + rTR, rTR, 3*Math.PI/2, 2*Math.PI, segments);
+        let arcBR = arcPoint(ox + w - rBR, oy + h - rBR, rBR, 0, Math.PI/2, segments);
+        let arcBL = arcPoint(ox + rBL, oy + h - rBL, rBL, Math.PI/2, Math.PI, segments);
+        
+        // Gom tất cả điểm theo thứ tự
+        const allPoints = [
+            {x: pTL.x, y: pTL.y},
+            ...arcTL,
+            {x: pTR.x, y: pTR.y},
+            ...arcTR,
+            {x: pBR.x, y: pBR.y},
+            ...arcBR,
+            {x: pBL.x, y: pBL.y},
+            ...arcBL
+        ];
+        
+        // Chuyển sang isometric
+        return allPoints.map(p => projectISO(p.x, p.y, 0, offsetX, offsetY));
+    }
+    
+    // Vẽ đáy (mặt dưới)
+    let bottomPoints = drawRoundedRect(0, 0, d1, d2, r1s, r2s, r3s, r4s, false);
+    ctx.shadowBlur = 25;
+    ctx.shadowOffsetX = 8;
+    ctx.shadowOffsetY = 12;
+    ctx.strokeStyle = colors.border;
+    ctx.fillStyle = colors.fill;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.moveTo(b0.x, b0.y);
-    ctx.lineTo(b1.x, b1.y);
-    ctx.lineTo(b2.x, b2.y);
-    ctx.lineTo(b3.x, b3.y);
+    ctx.moveTo(bottomPoints[0].x, bottomPoints[0].y);
+    for (let i = 1; i < bottomPoints.length; i++) {
+        ctx.lineTo(bottomPoints[i].x, bottomPoints[i].y);
+    }
     ctx.closePath();
     ctx.stroke();
     ctx.fill();
-
-    let bEdges = [b0, b1, b2, b3];
-    let tEdges = [t0, t1, t2, t3];
+    
+    // Vẽ mặt trên
+    let topPoints = drawRoundedRect(0, 0, d1, d2, r1s, r2s, r3s, r4s, true);
+    // Dịch lên theo chiều Z
+    let topPointsOffset = topPoints.map(p => {
+        let zOffset = projectISO(0, 0, d3, 0, 0);
+        return {x: p.x, y: p.y - d3};
+    });
+    
+    ctx.shadowBlur = 15;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 5;
+    ctx.strokeStyle = colors.borderTop;
+    ctx.fillStyle = colors.fillTop;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(topPointsOffset[0].x, topPointsOffset[0].y);
+    for (let i = 1; i < topPointsOffset.length; i++) {
+        ctx.lineTo(topPointsOffset[i].x, topPointsOffset[i].y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fill();
+    
+    // Reset shadow
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    
+    // Vẽ các cạnh đứng nối từ đáy lên mặt trên
+    ctx.strokeStyle = colors.border;
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.6;
+    
+    // Lấy các điểm góc của đáy và mặt trên
+    const corners = [
+        {x: 0, y: 0},           // TL
+        {x: d1, y: 0},          // TR
+        {x: d1, y: d2},         // BR
+        {x: 0, y: d2}           // BL
+    ];
+    
+    // Điều chỉnh vị trí góc theo bo góc
+    const cornerOffsets = [
+        {x: r1s, y: r1s},       // TL
+        {x: -r2s, y: r2s},      // TR
+        {x: -r3s, y: -r3s},     // BR
+        {x: r4s, y: -r4s}       // BL
+    ];
+    
     for (let i = 0; i < 4; i++) {
+        let cxCorner = corners[i].x + cornerOffsets[i].x;
+        let cyCorner = corners[i].y + cornerOffsets[i].y;
+        
+        let bottom = projectISO(cxCorner, cyCorner, 0, offsetX, offsetY);
+        let top = projectISO(cxCorner, cyCorner, d3, offsetX, offsetY);
+        
         ctx.beginPath();
-        ctx.moveTo(bEdges[i].x, bEdges[i].y);
-        ctx.lineTo(tEdges[i].x, tEdges[i].y);
+        ctx.moveTo(bottom.x, bottom.y);
+        ctx.lineTo(top.x, top.y);
         ctx.stroke();
     }
-
-    ctx.beginPath();
-    ctx.moveTo(t0.x, t0.y);
-    ctx.lineTo(t1.x, t1.y);
-    ctx.lineTo(t2.x, t2.y);
-    ctx.lineTo(t3.x, t3.y);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.fill();
-
-    ctx.fillStyle = "#1e293b";
-    ctx.font = "bold 13px Segoe UI";
-
-    let c1 = projectISO(d1 / 2, 0, 0, offsetX, offsetY);
-    let c2 = projectISO(d1, d2 / 2, d3, offsetX, offsetY);
-    let c3 = projectISO(0, 0, d3 / 2, offsetX, offsetY);
-
-    ctx.fillText(lbl1, c1.x - 20, c1.y + 18);
-    ctx.fillText(lbl2, c2.x - 15, c2.y - 8);
-    ctx.fillText(lbl3, c3.x - 55, c3.y + 4);
+    
+    ctx.globalAlpha = 1;
+    
+    // Vẽ các đường nét mờ cho các cạnh khuất
+    ctx.strokeStyle = "rgba(74, 158, 255, 0.2)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    
+    // Cạnh khuất phía sau
+    const hiddenCorners = [
+        {x: 0, y: d2, ox: r4s, oy: -r4s},
+        {x: d1, y: d2, ox: -r3s, oy: -r3s}
+    ];
+    for (let i = 0; i < hiddenCorners.length; i++) {
+        let cxCorner = hiddenCorners[i].x + hiddenCorners[i].ox;
+        let cyCorner = hiddenCorners[i].y + hiddenCorners[i].oy;
+        let bottom = projectISO(cxCorner, cyCorner, 0, offsetX, offsetY);
+        let top = projectISO(cxCorner, cyCorner, d3, offsetX, offsetY);
+        ctx.beginPath();
+        ctx.moveTo(bottom.x, bottom.y);
+        ctx.lineTo(top.x, top.y);
+        ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    
+    // Vẽ nhãn kích thước
+    ctx.fillStyle = colors.label;
+    ctx.font = "bold 14px Segoe UI";
+    ctx.shadowColor = "rgba(0,0,0,0.5)";
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    
+    // Vị trí nhãn
+    let labelPositions = [
+        {x: d1/2, y: 0, z: 0},           // Length
+        {x: d1, y: d2/2, z: d3},          // Width
+        {x: 0, y: 0, z: d3/2}             // Height
+    ];
+    
+    // Điều chỉnh theo bo góc
+    let labels = [lbl1, lbl2, lbl3];
+    let labelOffsets = [
+        {x: 0, y: -15},  // Length - phía trên
+        {x: 12, y: -5},  // Width - bên phải
+        {x: -50, y: 5}   // Height - bên trái
+    ];
+    
+    for (let i = 0; i < 3; i++) {
+        let lx = labelPositions[i].x;
+        let ly = labelPositions[i].y;
+        let lz = labelPositions[i].z;
+        let p = projectISO(lx, ly, lz, offsetX, offsetY);
+        ctx.fillText(labels[i], p.x + labelOffsets[i].x, p.y + labelOffsets[i].y);
+    }
+    
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
 }
 
 function log(t) {
