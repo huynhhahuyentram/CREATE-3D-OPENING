@@ -341,7 +341,7 @@ function log(t) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// ===== VOICE RECOGNITION CẢI TIẾN =====
+// ===== VOICE RECOGNITION CẢI TIẾN - CHỜ NGƯỜI DÙNG NÓI =====
 function voice() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
@@ -357,8 +357,12 @@ function voice() {
     u.lang = "vi-VN";
     u.rate = 0.95;
 
+    let isListening = false;
+    let hasReceivedResult = false;
+
     u.onend = () => {
         log("🔴 <i>Đang nghe...</i>");
+        
         let r = new SR();
         r.lang = "vi-VN";
         r.continuous = true;
@@ -367,8 +371,15 @@ function voice() {
 
         let silenceTimer = null;
         let finalText = "";
+        let isProcessing = false;
+
+        r.onstart = () => {
+            isListening = true;
+            hasReceivedResult = false;
+        };
 
         r.onresult = (e) => {
+            hasReceivedResult = true;
             let final = "";
             
             for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -379,29 +390,71 @@ function voice() {
             
             if (final) {
                 finalText = final;
+                // Hiển thị đang nhận diện
+                if (finalText && !isProcessing) {
+                    log("👤 " + finalText + " (đang xử lý...)");
+                }
             }
             
+            // Reset timer khi có kết quả mới
             clearTimeout(silenceTimer);
             
-            if (finalText) {
+            // Nếu có kết quả cuối cùng, xử lý sau 1 giây im lặng
+            if (finalText && !isProcessing) {
+                isProcessing = true;
                 silenceTimer = setTimeout(() => {
                     try {
                         r.stop();
                     } catch(e) {}
+                    // Xóa dòng "đang xử lý" và hiển thị kết quả cuối cùng
                     processFullVoiceNLP(finalText);
-                }, 1500);
+                    isProcessing = false;
+                    isListening = false;
+                }, 1000);
             }
         };
 
         r.onerror = (e) => {
-            let errorMsg = "Chưa nhận diện được thông số, vui lòng thử lại!";
-            log("🤖 " + errorMsg);
-            speak(errorMsg);
+            // Chỉ báo lỗi nếu đã có kết quả hoặc lỗi không phải do người dùng không nói
+            if (e.error === 'no-speech') {
+                // Không có giọng nói - không làm gì, tiếp tục lắng nghe
+                return;
+            }
+            
+            if (e.error === 'not-allowed') {
+                let errorMsg = "Vui lòng cho phép truy cập microphone!";
+                log("🤖 " + errorMsg);
+                speak(errorMsg);
+                isListening = false;
+                return;
+            }
+            
+            // Các lỗi khác
+            if (hasReceivedResult && finalText) {
+                // Đã có kết quả, xử lý bình thường
+                if (!isProcessing) {
+                    isProcessing = true;
+                    processFullVoiceNLP(finalText);
+                    isProcessing = false;
+                    isListening = false;
+                }
+            } else {
+                // Chưa có kết quả, không báo lỗi tự động
+                // Chỉ log nhẹ nhàng
+                log("🔴 <i>Đang nghe tiếp...</i>");
+            }
         };
 
         r.onend = () => {
-            if (finalText) {
+            isListening = false;
+            // Nếu kết thúc mà có kết quả và chưa xử lý
+            if (finalText && !isProcessing) {
+                isProcessing = true;
                 processFullVoiceNLP(finalText);
+                isProcessing = false;
+            } else if (!hasReceivedResult) {
+                // Không có giọng nói nào được nhận - không làm gì
+                // Không tự động báo lỗi
             }
         };
 
@@ -418,6 +471,9 @@ function voice() {
 }
 
 function processFullVoiceNLP(t) {
+    // Xóa dòng "đang xử lý" nếu có bằng cách cập nhật lại chat
+    // Nhưng để đơn giản, chúng ta sẽ log kết quả mới
+    
     log("👤 " + t);
 
     // 1. CHUẨN HÓA VĂN BẢN
@@ -439,6 +495,7 @@ function processFullVoiceNLP(t) {
     const cleanNumberString = (numStr) => {
         if (!numStr) return "0";
         numStr = numStr.trim().replace(/\s+/g, '');
+        // Nếu có dấu phẩy, giữ nguyên để parseFloat hiểu
         return numStr;
     };
 
@@ -603,13 +660,14 @@ function processFullVoiceNLP(t) {
         }
     }
 
-    // 7. PHẢN HỒI KẾT QUẢ - CHỈ HIỂN THỊ 1 DÒNG DUY NHẤT
+    // 7. PHẢN HỒI KẾT QUẢ
     if (updatedCount > 0) {
         draw();
-        // GỘP THÀNH 1 DÒNG DUY NHẤT
-        let detailMsg = "✅ Đã nhận diện: " + detectedInfo.join(", ") + ". " + "File của bạn đã được tạo xong";
+        let detailMsg = "✅ Đã nhận diện: " + detectedInfo.join(", ");
         log("🤖 " + detailMsg);
-        speak("File của bạn đã được tạo xong");
+        let successMsg = "File của bạn đã được tạo xong";
+        log("🤖 " + successMsg);
+        speak(successMsg);
     } else {
         let failMsg = "Chưa nhận diện được thông số, vui lòng thử lại!";
         log("🤖 " + failMsg);
@@ -700,29 +758,4 @@ function reset() {
     document.getElementById("px").value = 0;
     document.getElementById("py").value = 0;
     document.getElementById("pz").value = 0;
-    document.getElementById("dx").value = 0;
-    document.getElementById("dy").value = 0;
-    document.getElementById("dz").value = 0;
-    document.getElementById("r1").value = 150;
-    document.getElementById("r2").value = 150;
-    document.getElementById("r3").value = 150;
-    document.getElementById("r4").value = 150;
-    setOri('Z');
-}
-
-function help() {
-    window.open("https://drive.google.com/file/d/14NNDzXSCG63m1yQZb51tZhrZfd5k8KPf/view?usp=sharing");
-}
-
-// Hàm Library - mở thư viện
-function library() {
-    log("📚 Đang mở thư viện...");
-    alert("Chức năng Library đang được phát triển!");
-}
-
-document.querySelectorAll("input").forEach(i => {
-    i.addEventListener("input", draw);
-});
-
-window.addEventListener("resize", draw);
-draw();
+    document
