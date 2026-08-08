@@ -357,7 +357,6 @@ function voice() {
     u.lang = "vi-VN";
     u.rate = 0.95;
 
-    let isListening = false;
     let hasReceivedResult = false;
 
     u.onend = () => {
@@ -374,7 +373,6 @@ function voice() {
         let isProcessing = false;
 
         r.onstart = () => {
-            isListening = true;
             hasReceivedResult = false;
         };
 
@@ -390,34 +388,26 @@ function voice() {
             
             if (final) {
                 finalText = final;
-                // Hiển thị đang nhận diện
-                if (finalText && !isProcessing) {
-                    log("👤 " + finalText + " (đang xử lý...)");
-                }
             }
             
-            // Reset timer khi có kết quả mới
             clearTimeout(silenceTimer);
             
-            // Nếu có kết quả cuối cùng, xử lý sau 1 giây im lặng
             if (finalText && !isProcessing) {
                 isProcessing = true;
                 silenceTimer = setTimeout(() => {
                     try {
                         r.stop();
                     } catch(e) {}
-                    // Xóa dòng "đang xử lý" và hiển thị kết quả cuối cùng
                     processFullVoiceNLP(finalText);
                     isProcessing = false;
-                    isListening = false;
                 }, 1000);
             }
         };
 
         r.onerror = (e) => {
-            // Chỉ báo lỗi nếu đã có kết quả hoặc lỗi không phải do người dùng không nói
+            // Chỉ báo lỗi nếu đã có kết quả
             if (e.error === 'no-speech') {
-                // Không có giọng nói - không làm gì, tiếp tục lắng nghe
+                // Không có giọng nói - không làm gì
                 return;
             }
             
@@ -425,37 +415,25 @@ function voice() {
                 let errorMsg = "Vui lòng cho phép truy cập microphone!";
                 log("🤖 " + errorMsg);
                 speak(errorMsg);
-                isListening = false;
                 return;
             }
             
-            // Các lỗi khác
-            if (hasReceivedResult && finalText) {
-                // Đã có kết quả, xử lý bình thường
-                if (!isProcessing) {
-                    isProcessing = true;
-                    processFullVoiceNLP(finalText);
-                    isProcessing = false;
-                    isListening = false;
-                }
-            } else {
-                // Chưa có kết quả, không báo lỗi tự động
-                // Chỉ log nhẹ nhàng
-                log("🔴 <i>Đang nghe tiếp...</i>");
+            // Các lỗi khác - chỉ log nếu đã có kết quả
+            if (hasReceivedResult && finalText && !isProcessing) {
+                isProcessing = true;
+                processFullVoiceNLP(finalText);
+                isProcessing = false;
             }
         };
 
         r.onend = () => {
-            isListening = false;
             // Nếu kết thúc mà có kết quả và chưa xử lý
             if (finalText && !isProcessing) {
                 isProcessing = true;
                 processFullVoiceNLP(finalText);
                 isProcessing = false;
-            } else if (!hasReceivedResult) {
-                // Không có giọng nói nào được nhận - không làm gì
-                // Không tự động báo lỗi
             }
+            // Không có giọng nói -> không làm gì, không báo lỗi
         };
 
         try {
@@ -471,9 +449,6 @@ function voice() {
 }
 
 function processFullVoiceNLP(t) {
-    // Xóa dòng "đang xử lý" nếu có bằng cách cập nhật lại chat
-    // Nhưng để đơn giản, chúng ta sẽ log kết quả mới
-    
     log("👤 " + t);
 
     // 1. CHUẨN HÓA VĂN BẢN
@@ -495,7 +470,6 @@ function processFullVoiceNLP(t) {
     const cleanNumberString = (numStr) => {
         if (!numStr) return "0";
         numStr = numStr.trim().replace(/\s+/g, '');
-        // Nếu có dấu phẩy, giữ nguyên để parseFloat hiểu
         return numStr;
     };
 
@@ -509,14 +483,6 @@ function processFullVoiceNLP(t) {
             }
         }
         return null;
-    };
-
-    const findAllNumbers = () => {
-        let nums = str.match(/-?\d+[.,]?\d*/g);
-        if (nums) {
-            return nums.map(n => cleanNumberString(n));
-        }
-        return [];
     };
 
     // 1. NHẬN DIỆN ORIENTATION
@@ -540,8 +506,6 @@ function processFullVoiceNLP(t) {
     }
 
     // 2. NHẬN DIỆN POSITION (X, Y, Z)
-    let allNumbers = findAllNumbers();
-    
     let posX = findVal(["tọa độ x", "vị trí x", "pos x", "position x", "đồ ít", "tọa độ ít", "x"]);
     let posY = findVal(["tọa độ y", "vị trí y", "pos y", "position y", "y"]);
     let posZ = findVal(["tọa độ zét", "tọa độ zed", "tọa độ z", "vị trí z", "pos z", "position z", "zét", "zed", "z"]);
@@ -758,4 +722,29 @@ function reset() {
     document.getElementById("px").value = 0;
     document.getElementById("py").value = 0;
     document.getElementById("pz").value = 0;
-    document
+    document.getElementById("dx").value = 0;
+    document.getElementById("dy").value = 0;
+    document.getElementById("dz").value = 0;
+    document.getElementById("r1").value = 150;
+    document.getElementById("r2").value = 150;
+    document.getElementById("r3").value = 150;
+    document.getElementById("r4").value = 150;
+    setOri('Z');
+}
+
+function help() {
+    window.open("https://drive.google.com/file/d/14NNDzXSCG63m1yQZb51tZhrZfd5k8KPf/view?usp=sharing");
+}
+
+// Hàm Library - mở thư viện
+function library() {
+    log("📚 Đang mở thư viện...");
+    alert("Chức năng Library đang được phát triển!");
+}
+
+document.querySelectorAll("input").forEach(i => {
+    i.addEventListener("input", draw);
+});
+
+window.addEventListener("resize", draw);
+draw();
