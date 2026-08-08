@@ -1,85 +1,494 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Opening Tool Pro</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+/* ===== CSS VARIABLES ===== */
+:root {
+    --bg-primary: #0a1628;
+    --bg-secondary: #111d33;
+    --bg-card: #16233d;
+    --bg-input: #0f1d3a;
+    --bg-input-hover: #1a2d52;
+    --border-color: #243b60;
+    --border-focus: #1a8cff;
+    --text-primary: #e8edf5;
+    --text-secondary: #7a9bcb;
+    --text-muted: #4a6a8f;
+    --accent-blue: #1a8cff;
+    --accent-blue-hover: #3d9eff;
+    --accent-green: #00c853;
+    --accent-purple: #7c4dff;
+    --accent-orange: #ff6d00;
+    --accent-red: #ff1744;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    --shadow-glow: 0 0 40px rgba(26, 140, 255, 0.08);
+    --radius: 14px;
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-<div class="app">
-    <canvas id="view"></canvas>
+/* ===== RESET & BASE ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-    <div class="panel">
-        <div class="row">
-            <div class="box">
-                <h3>Position</h3>
-                <div class="input-list">
-                    <div class="input-item">
-                        <label>X [mm]</label>
-                        <input id="px" type="number" value="0">
-                    </div>
-                    <div class="input-item">
-                        <label>Y [mm]</label>
-                        <input id="py" type="number" value="0">
-                    </div>
-                    <div class="input-item">
-                        <label>Z [mm]</label>
-                        <input id="pz" type="number" value="0">
-                    </div>
-                </div>
-            </div>
+body {
+    font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background-image: 
+        radial-gradient(ellipse at 20% 30%, rgba(26, 140, 255, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(124, 77, 255, 0.04) 0%, transparent 60%);
+}
 
-            <div class="box">
-                <h3>Dimension</h3>
-                <div class="input-list">
-                    <div class="input-item">
-                        <label>Length [mm]</label>
-                        <input id="dx" type="number" value="0">
-                    </div>
-                    <div class="input-item">
-                        <label>Width [mm]</label>
-                        <input id="dy" type="number" value="0">
-                    </div>
-                    <div class="input-item">
-                        <label>Height [mm]</label>
-                        <input id="dz" type="number" value="0">
-                    </div>
-                </div>
-            </div>
-        </div>
+/* ===== APP CONTAINER ===== */
+.app {
+    width: 1100px;
+    max-width: 100%;
+    margin: 0 auto;
+}
 
-        <div class="box">
-            <h3>Corner Radius (mm)</h3>
-            <div class="radius">
-                <label>R1<input id="r1" type="number" value="150"></label>
-                <label>R2<input id="r2" type="number" value="150"></label>
-                <label>R3<input id="r3" type="number" value="150"></label>
-                <label>R4<input id="r4" type="number" value="150"></label>
-            </div>
-        </div>
+/* ===== CANVAS 3D ===== */
+#view {
+    width: 100%;
+    height: 300px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    display: block;
+    box-shadow: var(--shadow), var(--shadow-glow);
+    transition: var(--transition);
+}
 
-        <div class="box">
-            <h3>Orientation</h3>
-            <div class="ori">
-                <button onclick="setOri('X')" id="ox">X</button>
-                <button onclick="setOri('Y')" id="oy">Y</button>
-                <button onclick="setOri('Z')" id="oz" class="active">Z</button>
-            </div>
-        </div>
+#view:hover {
+    border-color: var(--border-focus);
+}
 
-        <div class="btns">
-            <button class="ok" onclick="saveFile()">OK (Export MAC)</button>
-            <button class="voice" onclick="voice()" id="voiceBtn">🎤 Voice</button>
-            <button class="help" onclick="help()">Help</button>
-            <button class="reset" onclick="reset()">Reset</button>
-        </div>
+/* ===== PANEL ===== */
+.panel {
+    background: var(--bg-card);
+    padding: 28px 32px;
+    margin-top: 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow), var(--shadow-glow);
+}
 
-        <div id="chat"></div>
-    </div>
-</div>
+/* ===== ROW LAYOUT ===== */
+.row {
+    display: flex;
+    gap: 48px;
+    flex-wrap: wrap;
+}
 
-<script src="script.js"></script>
-</body>
-</html>
+.box {
+    flex: 1;
+    min-width: 200px;
+    margin-bottom: 16px;
+}
+
+/* ===== HEADINGS ===== */
+h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 2px solid var(--accent-blue);
+    display: inline-block;
+    padding-bottom: 6px;
+    opacity: 0.9;
+}
+
+/* ===== INPUT LIST ===== */
+.input-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.input-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.input-item label {
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--text-secondary);
+    width: 80px;
+    letter-spacing: 0.3px;
+}
+
+.input-item input {
+    flex: 1;
+    height: 40px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: var(--bg-input);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0 14px;
+    outline: none;
+    transition: var(--transition);
+    font-family: 'Segoe UI', 'Inter', monospace;
+}
+
+.input-item input::placeholder {
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.input-item input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 4px rgba(26, 140, 255, 0.12);
+    background: var(--bg-input-hover);
+}
+
+.input-item input:hover {
+    border-color: #2a4a7a;
+    background: var(--bg-input-hover);
+}
+
+/* ===== HIDE NUMBER SPINNER ===== */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+input[type=number] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+}
+
+/* ===== CORNER RADIUS ===== */
+.radius {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.radius label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 60px;
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.radius input {
+    width: 100%;
+    height: 40px;
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: var(--bg-input);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0 10px;
+    outline: none;
+    transition: var(--transition);
+    text-align: center;
+    font-family: 'Segoe UI', 'Inter', monospace;
+}
+
+.radius input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 4px rgba(26, 140, 255, 0.12);
+    background: var(--bg-input-hover);
+}
+
+.radius input:hover {
+    border-color: #2a4a7a;
+    background: var(--bg-input-hover);
+}
+
+/* ===== ORIENTATION ===== */
+.ori {
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ori button {
+    width: 72px;
+    height: 42px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-input);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Segoe UI', 'Inter', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.ori button:hover {
+    background: var(--bg-input-hover);
+    border-color: #2a4a7a;
+    transform: translateY(-1px);
+    color: var(--text-primary);
+}
+
+.ori .active {
+    background: var(--accent-blue);
+    color: #ffffff;
+    border-color: var(--accent-blue);
+    box-shadow: 0 4px 24px rgba(26, 140, 255, 0.35);
+    transform: translateY(-2px);
+}
+
+.ori .active:hover {
+    background: var(--accent-blue-hover);
+    box-shadow: 0 6px 32px rgba(26, 140, 255, 0.45);
+}
+
+/* ===== BUTTONS ===== */
+.btns {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.btns button {
+    flex: 1;
+    min-width: 100px;
+    height: 46px;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.3px;
+    font-family: 'Segoe UI', 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+.btns button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.btns button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.btns button:active {
+    transform: translateY(0px) scale(0.98);
+}
+
+.ok {
+    background: linear-gradient(135deg, #1a8cff, #0066cc);
+}
+.ok:hover {
+    background: linear-gradient(135deg, #3d9eff, #1a8cff);
+}
+
+.voice {
+    background: linear-gradient(135deg, #7c4dff, #651fff);
+}
+.voice:hover {
+    background: linear-gradient(135deg, #9d6fff, #7c4dff);
+}
+
+.help {
+    background: linear-gradient(135deg, #00c853, #009624);
+}
+.help:hover {
+    background: linear-gradient(135deg, #00e676, #00c853);
+}
+
+.reset {
+    background: linear-gradient(135deg, #ff1744, #d50000);
+}
+.reset:hover {
+    background: linear-gradient(135deg, #ff5252, #ff1744);
+}
+
+/* ===== CHAT / LOG ===== */
+#chat {
+    height: 110px;
+    margin-top: 18px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-y: auto;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-family: 'Segoe UI', 'Inter', monospace;
+    transition: var(--transition);
+}
+
+#chat:focus-within {
+    border-color: var(--border-focus);
+}
+
+/* ===== CUSTOM SCROLLBAR ===== */
+#chat::-webkit-scrollbar {
+    width: 5px;
+}
+#chat::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+}
+#chat::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+#chat::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-blue);
+}
+
+#chat div {
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+#chat div:last-child {
+    border-bottom: none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    body {
+        padding: 12px;
+    }
+    
+    .panel {
+        padding: 18px 16px;
+    }
+    
+    .row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .box {
+        margin-bottom: 8px;
+    }
+    
+    .input-item label {
+        width: 60px;
+        font-size: 12px;
+    }
+    
+    .radius {
+        gap: 8px;
+    }
+    
+    .radius label {
+        min-width: 45px;
+        font-size: 10px;
+    }
+    
+    .btns button {
+        min-width: 70px;
+        font-size: 12px;
+        height: 40px;
+    }
+    
+    .ori button {
+        width: 60px;
+        height: 38px;
+        font-size: 14px;
+    }
+    
+    #view {
+        height: 200px;
+    }
+    
+    h3 {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 8px;
+    }
+    
+    .panel {
+        padding: 12px 10px;
+    }
+    
+    .btns {
+        flex-direction: column;
+    }
+    
+    .btns button {
+        min-width: 100%;
+    }
+    
+    .input-item {
+        flex-wrap: wrap;
+    }
+    
+    .input-item input {
+        width: 100%;
+        flex: none;
+    }
+    
+    .input-item label {
+        width: 100%;
+        margin-bottom: 2px;
+    }
+    
+    .radius {
+        flex-direction: column;
+    }
+    
+    #chat {
+        height: 80px;
+        font-size: 12px;
+    }
+}
+
+/* ===== ANIMATION ===== */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* ===== VOICE LISTENING STATE ===== */
+.voice.listening {
+    animation: pulse 1s ease-in-out infinite;
+    box-shadow: 0 0 40px rgba(124, 77, 255, 0.5);
+}
+
+/* ===== STATUS INDICATOR ===== */
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+.status-dot.green { background: var(--accent-green); }
+.status-dot.red { background: var(--accent-red); }
+.status-dot.blue { background: var(--accent-blue); }
