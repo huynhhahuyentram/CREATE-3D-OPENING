@@ -1,1 +1,202 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #eef2f7;
+    font-size: 15px;
+    padding: 20px 0;
+}
+
+.app {
+    width: 960px;
+    margin: auto;
+}
+
+#view {
+    width: 100%;
+    height: 280px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    display: block;
+}
+
+.panel {
+    background: #ffffff;
+    padding: 24px;
+    margin-top: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.row {
+    display: flex;
+    gap: 40px;
+}
+
+.box {
+    flex: 1;
+    margin-bottom: 20px;
+}
+
+h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a252f;
+    margin-bottom: 12px;
+    border-bottom: 2.5px solid #2d89ef;
+    display: inline-block;
+    padding-bottom: 4px;
+}
+
+.input-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.input-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.input-item label {
+    font-weight: 600;
+    font-size: 15px;
+    color: #34495e;
+    width: 130px;
+}
+
+.input-item input {
+    flex: 1;
+    height: 38px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #2c3e50;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0 12px;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+}
+
+/* SỬA LỖI 2: TẮT MŨI TÊN TĂNG GIẢM SỐ TRÊN MỌI TRÌNH DUYỆT (CHROME, SAFARI, EDGE, FIREFOX) */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none !important; 
+    margin: 0 !important; 
+}
+
+input[type=number] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+}
+
+.input-item input:focus {
+    border-color: #2d89ef;
+    box-shadow: 0 0 0 3px rgba(45, 137, 239, 0.15);
+}
+
+.radius {
+    display: flex;
+    gap: 15px;
+}
+
+.radius label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    font-weight: 600;
+    font-size: 14px;
+    color: #34495e;
+}
+
+.radius input {
+    width: 100%;
+    height: 38px;
+    margin-top: 5px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #2c3e50;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0 10px;
+    outline: none;
+}
+
+.ori {
+    display: flex;
+    justify-content: flex-start;
+    gap: 15px;
+}
+
+.ori button {
+    width: 75px;
+    height: 38px;
+    border: none;
+    border-radius: 8px;
+    background: #e2e8f0;
+    font-weight: bold;
+    font-size: 15px;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.ori button:hover {
+    background: #cbd5e1;
+}
+
+.ori .active {
+    background: #2d89ef;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(45, 137, 239, 0.3);
+}
+
+.btns {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.btns button {
+    flex: 1;
+    height: 44px;
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.btns button:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+
+.ok { background: #2d89ef; }
+.voice { background: #8e44ad; }
+.help { background: #16a085; }
+.reset { background: #e74c3c; }
+
+#chat {
+    height: 100px;
+    margin-top: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    overflow-y: auto;
+    font-size: 14px;
+    color: #334155;
+} 
+
 
