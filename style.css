@@ -253,7 +253,7 @@ input[type=number] {
 
 .btns button {
     flex: 1;
-    min-width: 100px;
+    min-width: 80px;
     height: 46px;
     border: none;
     border-radius: 10px;
@@ -285,10 +285,10 @@ input[type=number] {
     transform: translateY(0px);
 }
 
-.ok {
+.export {
     background: linear-gradient(135deg, #1a8cff, #0066cc);
 }
-.ok:hover {
+.export:hover {
     background: linear-gradient(135deg, #3d9eff, #1a8cff);
 }
 
@@ -299,32 +299,39 @@ input[type=number] {
     background: linear-gradient(135deg, #9d6fff, #7c4dff);
 }
 
-.help {
+.reset {
+    background: linear-gradient(135deg, #ff6d00, #e65100);
+}
+.reset:hover {
+    background: linear-gradient(135deg, #ff9100, #ff6d00);
+}
+
+.library {
     background: linear-gradient(135deg, #00c853, #009624);
 }
-.help:hover {
+.library:hover {
     background: linear-gradient(135deg, #00e676, #00c853);
 }
 
-.reset {
+.help {
     background: linear-gradient(135deg, #ff1744, #d50000);
 }
-.reset:hover {
+.help:hover {
     background: linear-gradient(135deg, #ff5252, #ff1744);
 }
 
-/* ===== CHAT / LOG ===== */
+/* ===== CHAT / LOG - TĂNG LÊN 6 DÒNG ===== */
 #chat {
-    height: 110px;
+    height: 180px;
     margin-top: 18px;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 14px 16px;
     overflow-y: auto;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-secondary);
-    line-height: 1.7;
+    line-height: 1.8;
     font-family: 'Segoe UI', monospace;
     transition: var(--transition);
 }
@@ -350,7 +357,7 @@ input[type=number] {
 }
 
 #chat div {
-    padding: 2px 0;
+    padding: 3px 0;
     border-bottom: 1px solid rgba(255,255,255,0.03);
 }
 
@@ -392,7 +399,7 @@ input[type=number] {
     }
     
     .btns button {
-        min-width: 70px;
+        min-width: 60px;
         font-size: 12px;
         height: 40px;
     }
@@ -405,6 +412,11 @@ input[type=number] {
     
     #view {
         height: 200px;
+    }
+    
+    #chat {
+        height: 150px;
+        font-size: 13px;
     }
     
     h3 {
@@ -444,7 +456,7 @@ input[type=number] {
     }
     
     #chat {
-        height: 80px;
+        height: 120px;
         font-size: 12px;
     }
 }
