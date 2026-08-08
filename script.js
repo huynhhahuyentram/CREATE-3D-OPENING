@@ -576,7 +576,7 @@ function processFullVoiceNLP(t) {
         detectedInfo.push("Orientation: Z");
     }
 
-    // 2. NHẬN DIỆN POSITION (X, Y, Z) - SỬ DỤNG SỐ TỪ CLEAN NUMBERS
+    // 2. NHẬN DIỆN POSITION (X, Y, Z)
     let posX = findVal(["tọa độ x", "vị trí x", "pos x", "position x", "đồ ít", "tọa độ ít", "x"]);
     let posY = findVal(["tọa độ y", "vị trí y", "pos y", "position y", "y"]);
     let posZ = findVal(["tọa độ zét", "tọa độ zed", "tọa độ z", "vị trí z", "pos z", "position z", "zét", "zed", "z"]);
@@ -682,7 +682,7 @@ function processFullVoiceNLP(t) {
         return;
     }
 
-    // 6. NẾU KHÔNG CÓ TỪ KHÓA, THỬ NHẬN DIỆN CHUỖI SỐ (HỖ TRỢ SỐ ÂM, SỐ LỚN)
+    // 6. NẾU KHÔNG CÓ TỪ KHÓA, THỬ NHẬN DIỆN CHUỖI SỐ
     if (updatedCount === 0) {
         // Lấy tất cả số từ text đã chuẩn hóa
         let rawNums = str.match(/-?\d+[.,]?\d*/g);
@@ -729,4 +729,10 @@ function speak(t) {
     window.speechSynthesis.speak(u);
 }
 
-/* 4. CHỈNH SỬA CHUẨN ORI KHI XUẤT FILE .MAC THEO ĐÚNG HƯỚNG ĐƯỢC CHỌN
+/* 4. CHỈNH SỬA CHUẨN ORI KHI XUẤT FILE .MAC THEO ĐÚNG HƯỚNG ĐƯỢC CHỌN */
+function saveFile() {
+    let px = parseInputValue("px");
+    let py = parseInputValue("py");
+    let pz = parseInputValue("pz");
+
+    let
