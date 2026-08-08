@@ -374,7 +374,6 @@ function processFullVoiceNLP(t) {
     str = str.replace(/(\d+)\.(\d+)/g, '$1$2');
 
     let updatedCount = 0;
-    let buttonExecutedMsg = null;
 
     const cleanNumberString = (numStr) => {
         if (!numStr) return "0";
@@ -385,12 +384,14 @@ function processFullVoiceNLP(t) {
     // Hàm nhận diện số đứng TRƯỚC hoặc SAU từ khóa
     const findVal = (keywords) => {
         for (let kw of keywords) {
+            // Trường hợp 1: Số nằm SAU từ khóa (VD: chiều cao 2000, r1 là 150)
             let regAfter = new RegExp(`${kw}(?:\\s+là|\\s+bằng|\\s*[:=])?\\s*(-?\\s*\\d+(?:,\\d+)?)`, "i");
             let matchAfter = str.match(regAfter);
             if (matchAfter) {
                 return cleanNumberString(matchAfter[1]);
             }
             
+            // Trường hợp 2: Số nằm TRƯỚC từ khóa (VD: 2000 chiều cao, -500 vị trí x)
             let regBefore = new RegExp(`(-?\\s*\\d+(?:,\\d+)?)\\s*(?:mm)?\\s*${kw}`, "i");
             let matchBefore = str.match(regBefore);
             if (matchBefore) {
@@ -400,23 +401,31 @@ function processFullVoiceNLP(t) {
         return null;
     };
 
-    // 3. NHẬN DIỆN LỆNH NÚT BẤM BÊN DƯỚI (LINH HOẠT ANH - VIỆT)
-    if (/(xuất mac|xuất file|tải mac|tải file|export|export mac|save file|lưu file|tạo file|tạo mac)/i.test(str)) {
+    // 3. NHẬN DIỆN LỆNH NÚT BẤM (ĐA DẠNG TIẾNG ANH & TIẾNG VIỆT)
+    if (/(xuất mac|xuất file|xuat file|xuất tệp|xuat tep|lưu file|luu file|tải file|tai file|tạo file|tao file|tải về|tai ve|export|save|download)/i.test(str)) {
+        let msg = "Đã xuất file";
+        log("🤖 " + msg);
+        speak(msg);
         saveFile();
-        updatedCount++;
-        buttonExecutedMsg = "Đã xuất file";
-    } else if (/(đặt lại|reset|làm mới|xóa hết|xóa dữ liệu|nhập lại|clear)/i.test(str)) {
+        return;
+    } else if (/(đặt lại|dat lai|reset|làm mới|lam moi|xóa hết|xoa het|xóa dữ liệu|xoa du lieu|xóa số liệu|xoa so lieu|nhập lại|nhap lai|clear|restart)/i.test(str)) {
+        let msg = "Đã Reset số liệu";
+        log("🤖 " + msg);
+        speak(msg);
         reset();
-        updatedCount++;
-        buttonExecutedMsg = "Đã Reset số liệu";
-    } else if (/(thư viện|library|mở thư viện|open library)/i.test(str)) {
+        return;
+    } else if (/(thư viện|thu vien|mở thư viện|mo thu vien|vào thư viện|vao thu vien|danh mục|danh muc|library|open library)/i.test(str)) {
+        let msg = "Đã truy cập thư viện";
+        log("🤖 " + msg);
+        speak(msg);
         library();
-        updatedCount++;
-        buttonExecutedMsg = "Đã truy cập thư viện";
-    } else if (/(trợ giúp|hướng dẫn|help|xem hướng dẫn|open help)/i.test(str)) {
+        return;
+    } else if (/(trợ giúp|tro giup|hướng dẫn|huong dan|giúp đỡ|giup do|xem hướng dẫn|xem huong dan|help|guide|instruction|support)/i.test(str)) {
+        let msg = "Đã truy cập hướng dẫn";
+        log("🤖 " + msg);
+        speak(msg);
         help();
-        updatedCount++;
-        buttonExecutedMsg = "Đã truy cập hướng dẫn";
+        return;
     }
 
     // 4. NHẬN DIỆN ORIENTATION
@@ -454,6 +463,7 @@ function processFullVoiceNLP(t) {
     if (rad3 !== null) { document.getElementById("r3").value = rad3; updatedCount++; }
     if (rad4 !== null) { document.getElementById("r4").value = rad4; updatedCount++; }
     
+    // Chỉ cập nhật bo góc chung khi không có thông số kích thước/tọa độ đè vào
     if (radAll !== null && rad1 === null && rad2 === null && rad3 === null && rad4 === null && len === null && wid === null && hei === null) {
         document.getElementById("r1").value = radAll;
         document.getElementById("r2").value = radAll;
@@ -476,9 +486,9 @@ function processFullVoiceNLP(t) {
     // PHẢN HỒI LẠI TRÊN MÀN HÌNH VÀ PHÁT ÂM
     if (updatedCount > 0) {
         draw();
-        let speakMsg = buttonExecutedMsg ? buttonExecutedMsg : "File của bạn đã được tạo xong";
-        log("🤖 " + speakMsg);
-        speak(speakMsg);
+        let successMsg = "File của bạn đã được tạo xong";
+        log("🤖 " + successMsg);
+        speak(successMsg);
     } else {
         let failMsg = "Chưa nhận diện được thông số, vui lòng thử lại!";
         log("🤖 " + failMsg);
