@@ -1,23 +1,20 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Opening & Cut Zone Tool</title>
+    <title>3D Opening Tool Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app">
-    <!-- Màn hình Canvas 3D -->
     <canvas id="view"></canvas>
 
     <div class="panel">
-        <!-- Bảng 2 Cột: Position & Dimension -->
         <div class="row">
             <div class="box">
-                <h3>Position</h3>
+                <h3>📐 Position</h3>
                 <div class="input-list">
                     <div class="input-item">
                         <label>X [mm]</label>
@@ -35,7 +32,7 @@
             </div>
 
             <div class="box">
-                <h3>Dimension</h3>
+                <h3>📏 Dimension</h3>
                 <div class="input-list">
                     <div class="input-item">
                         <label>Length [mm]</label>
@@ -53,9 +50,8 @@
             </div>
         </div>
 
-        <!-- Bo góc -->
         <div class="box">
-            <h3>Corner Radius (mm)</h3>
+            <h3>🔘 Corner Radius (mm)</h3>
             <div class="radius">
                 <label>R1<input id="r1" type="number" value="150"></label>
                 <label>R2<input id="r2" type="number" value="150"></label>
@@ -64,9 +60,8 @@
             </div>
         </div>
 
-        <!-- Orientation -->
         <div class="box">
-            <h3>Orientation</h3>
+            <h3>🧭 Orientation</h3>
             <div class="ori">
                 <button onclick="setOri('X')" id="ox">X</button>
                 <button onclick="setOri('Y')" id="oy">Y</button>
@@ -74,12 +69,11 @@
             </div>
         </div>
 
-        <!-- Nút bấm chức năng -->
         <div class="btns">
-            <button class="ok" onclick="saveFile()">OK (Export MAC)</button>
-            <button class="voice" onclick="voice()">🎤 Voice</button>
-            <button class="help" onclick="help()">Help</button>
-            <button class="reset" onclick="reset()">Reset</button>
+            <button class="ok" onclick="saveFile()">⬇ Export MAC</button>
+            <button class="voice" onclick="voice()" id="voiceBtn">🎤 Voice</button>
+            <button class="help" onclick="help()">❓ Help</button>
+            <button class="reset" onclick="reset()">⟳ Reset</button>
         </div>
 
         <div id="chat"></div>
