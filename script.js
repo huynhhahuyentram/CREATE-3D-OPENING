@@ -21,7 +21,7 @@ function parseInputValue(id) {
 
 function draw() {
     c.width = c.offsetWidth;
-    c.height = 200;  // Giảm từ 280 xuống 200 để thu nhỏ khung 3D
+    c.height = 280;
 
     let L = parseInputValue("dx");
     let W = parseInputValue("dy");
@@ -44,11 +44,11 @@ function draw() {
     let cy = c.height / 2 + 30;
 
     if (ORI === "Z") {
-        drawBox3DSharp(cx, cy, l, w, h, `L=${L}`, `W=${W}`, `H=${H}`, 'Z');
+        drawBox3DSharp(cx, cy, l, w, h, `L=${L}`, `W=${W}`, `H=${H}`);
     } else if (ORI === "X") {
-        drawBox3DSharp(cx, cy, h, w, l, `H=${H}`, `W=${W}`, `L=${L}`, 'X');
+        drawBox3DSharp(cx, cy, h, w, l, `H=${H}`, `W=${W}`, `L=${L}`);
     } else if (ORI === "Y") {
-        drawBox3DSharp(cx, cy, l, h, w, `L=${L}`, `H=${H}`, `W=${W}`, 'Y');
+        drawBox3DSharp(cx, cy, l, h, w, `L=${L}`, `H=${H}`, `W=${W}`);
     }
 }
 
@@ -57,7 +57,7 @@ function drawAxis() {
     ctx.lineWidth = 2.5;
     ctx.font = "bold 13px Segoe UI";
 
-    let x0 = 50, y0 = 170;  // Dịch trục lên trên cho khung nhỏ hơn
+    let x0 = 50, y0 = 220;
 
     ctx.strokeStyle = "#e74c3c";
     ctx.fillStyle = "#e74c3c";
@@ -93,8 +93,8 @@ function projectISO(x, y, z, cx, cy) {
     };
 }
 
-/* 3. VẼ HÌNH HỘP 3D BO GÓC VỚI MÀU NHÃN THEO ORIENTATION */
-function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
+/* 3. VẼ HÌNH HỘP 3D BO GÓC VỚI MÀU SÁNG HƠN NỀN */
+function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3) {
     // Lấy giá trị bo góc từ input
     let r1 = parseInputValue("r1");
     let r2 = parseInputValue("r2");
@@ -119,20 +119,7 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     let offsetX = cx - d1 / 2;
     let offsetY = cy + d3 / 2;
 
-    // Màu sắc cho nhãn theo Orientation (trùng với màu trục tọa độ)
-    const labelColors = {
-        'X': { l1: '#e74c3c', l2: '#2980b9', l3: '#27ae60' },  // X: đỏ, Y: xanh, Z: xanh lá
-        'Y': { l1: '#e74c3c', l2: '#27ae60', l3: '#2980b9' },  // X: đỏ, Y: xanh lá, Z: xanh
-        'Z': { l1: '#e74c3c', l2: '#2980b9', l3: '#27ae60' }   // X: đỏ, Y: xanh, Z: xanh lá
-    };
-    
-    // Xác định màu cho từng nhãn dựa trên Orientation
-    let colorMap = labelColors[ori] || labelColors['Z'];
-    let labelColor1 = colorMap.l1;
-    let labelColor2 = colorMap.l2;
-    let labelColor3 = colorMap.l3;
-
-    // Màu sắc khung 3D
+    // Màu sắc sáng hơn nền (dark mode friendly)
     const colors = {
         border: "#4a9eff",
         fill: "rgba(74, 158, 255, 0.18)",
@@ -150,9 +137,11 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
 
     // Hàm vẽ góc bo tròn trên mặt phẳng XY (đáy và mặt trên)
     function drawRoundedRect(ox, oy, w, h, rTL, rTR, rBR, rBL, isTop) {
+        // Chuyển sang tọa độ isometric
         const pts = [];
         const segments = 12;
         
+        // Hàm tạo điểm trên cung tròn
         function arcPoint(cx, cy, r, startAngle, endAngle, numSeg) {
             const pts = [];
             for (let i = 0; i <= numSeg; i++) {
@@ -164,16 +153,20 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
             return pts;
         }
         
+        // Điểm góc trên mặt phẳng XY
+        // Góc TL (trên trái)
         let pTL = {x: ox + rTL, y: oy};
         let pTR = {x: ox + w - rTR, y: oy};
         let pBR = {x: ox + w, y: oy + h - rBR};
         let pBL = {x: ox + rBL, y: oy + h};
         
+        // Các cung bo góc
         let arcTL = arcPoint(ox + rTL, oy + rTL, rTL, Math.PI, 3*Math.PI/2, segments);
         let arcTR = arcPoint(ox + w - rTR, oy + rTR, rTR, 3*Math.PI/2, 2*Math.PI, segments);
         let arcBR = arcPoint(ox + w - rBR, oy + h - rBR, rBR, 0, Math.PI/2, segments);
         let arcBL = arcPoint(ox + rBL, oy + h - rBL, rBL, Math.PI/2, Math.PI, segments);
         
+        // Gom tất cả điểm theo thứ tự
         const allPoints = [
             {x: pTL.x, y: pTL.y},
             ...arcTL,
@@ -185,6 +178,7 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
             ...arcBL
         ];
         
+        // Chuyển sang isometric
         return allPoints.map(p => projectISO(p.x, p.y, 0, offsetX, offsetY));
     }
     
@@ -207,7 +201,9 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     
     // Vẽ mặt trên
     let topPoints = drawRoundedRect(0, 0, d1, d2, r1s, r2s, r3s, r4s, true);
+    // Dịch lên theo chiều Z
     let topPointsOffset = topPoints.map(p => {
+        let zOffset = projectISO(0, 0, d3, 0, 0);
         return {x: p.x, y: p.y - d3};
     });
     
@@ -236,18 +232,20 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     ctx.lineWidth = 1.5;
     ctx.globalAlpha = 0.6;
     
+    // Lấy các điểm góc của đáy và mặt trên
     const corners = [
-        {x: 0, y: 0},
-        {x: d1, y: 0},
-        {x: d1, y: d2},
-        {x: 0, y: d2}
+        {x: 0, y: 0},           // TL
+        {x: d1, y: 0},          // TR
+        {x: d1, y: d2},         // BR
+        {x: 0, y: d2}           // BL
     ];
     
+    // Điều chỉnh vị trí góc theo bo góc
     const cornerOffsets = [
-        {x: r1s, y: r1s},
-        {x: -r2s, y: r2s},
-        {x: -r3s, y: -r3s},
-        {x: r4s, y: -r4s}
+        {x: r1s, y: r1s},       // TL
+        {x: -r2s, y: r2s},      // TR
+        {x: -r3s, y: -r3s},     // BR
+        {x: r4s, y: -r4s}       // BL
     ];
     
     for (let i = 0; i < 4; i++) {
@@ -270,6 +268,7 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
     
+    // Cạnh khuất phía sau
     const hiddenCorners = [
         {x: 0, y: d2, ox: r4s, oy: -r4s},
         {x: d1, y: d2, ox: -r3s, oy: -r3s}
@@ -286,25 +285,27 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     }
     ctx.setLineDash([]);
     
-    // Vẽ nhãn kích thước với màu tương ứng theo Orientation
+    // Vẽ nhãn kích thước
+    ctx.fillStyle = colors.label;
     ctx.font = "bold 14px Segoe UI";
     ctx.shadowColor = "rgba(0,0,0,0.5)";
     ctx.shadowBlur = 8;
     ctx.shadowOffsetX = 1;
     ctx.shadowOffsetY = 1;
     
-    // Vị trí và màu sắc cho từng nhãn
+    // Vị trí nhãn
     let labelPositions = [
-        {x: d1/2, y: 0, z: 0, color: labelColor1},    // L
-        {x: d1, y: d2/2, z: d3, color: labelColor2},   // W
-        {x: 0, y: 0, z: d3/2, color: labelColor3}      // H
+        {x: d1/2, y: 0, z: 0},           // Length
+        {x: d1, y: d2/2, z: d3},          // Width
+        {x: 0, y: 0, z: d3/2}             // Height
     ];
     
+    // Điều chỉnh theo bo góc
     let labels = [lbl1, lbl2, lbl3];
     let labelOffsets = [
-        {x: 0, y: -15},
-        {x: 12, y: -5},
-        {x: -50, y: 5}
+        {x: 0, y: -15},  // Length - phía trên
+        {x: 12, y: -5},  // Width - bên phải
+        {x: -50, y: 5}   // Height - bên trái
     ];
     
     for (let i = 0; i < 3; i++) {
@@ -312,9 +313,6 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
         let ly = labelPositions[i].y;
         let lz = labelPositions[i].z;
         let p = projectISO(lx, ly, lz, offsetX, offsetY);
-        
-        // Đặt màu cho từng nhãn
-        ctx.fillStyle = labelPositions[i].color;
         ctx.fillText(labels[i], p.x + labelOffsets[i].x, p.y + labelOffsets[i].y);
     }
     
@@ -344,11 +342,12 @@ function voice() {
     u.lang = "vi-VN";
     u.rate = 0.95;
 
+    // ĐẢM BẢO CHỈ BẬT MIC SAU KHI NÓI XONG CÂU XIN CHÀO
     u.onend = () => {
         log("🔴 <i>Đang nghe...</i>");
         let r = new SR();
         r.lang = "vi-VN"; 
-        r.continuous = true;
+        r.continuous = true; // Cho phép nói dài không bị ngắt giữa chừng
         r.interimResults = false;
 
         let silenceTimer = null;
@@ -356,6 +355,7 @@ function voice() {
         r.onresult = e => {
             let text = e.results[e.results.length - 1][0].transcript;
             
+            // TĂNG THỜI GIAN CHỜ: Đợi 2.5s không có tiếng nói mới tắt mic để xử lý
             clearTimeout(silenceTimer);
             silenceTimer = setTimeout(() => {
                 r.stop();
@@ -378,15 +378,18 @@ function voice() {
 function processFullVoiceNLP(t) {
     log("👤 " + t);
 
+    // 1. CHUẨN HÓA VĂN BẢN
     let str = t.toLowerCase()
                .replace(/\b(âm|trừ)\b/g, "-")
                .replace(/\bphẩy\b/g, ",")
                .replace(/\bchấm\b/g, "");
 
+    // 2. LOẠI BỎ TOÀN BỘ DẤU CHẤM HÀNG NGHÌN (VD: "5.007,5" -> "5007,5")
     str = str.replace(/(\d+)\.(\d+)/g, '$1$2');
 
     let updatedCount = 0;
 
+    // Hàm làm sạch và chuyển đổi dấu phẩy duy nhất thành dấu chấm thập phân tiêu chuẩn HTML
     const cleanNumberString = (numStr) => {
         if (!numStr) return "0";
         numStr = numStr.trim().replace(/\s+/g, '');
@@ -395,6 +398,7 @@ function processFullVoiceNLP(t) {
 
     const findVal = (keywords) => {
         for (let kw of keywords) {
+            // Regex nhận diện chính xác số âm, số nguyên và số thập phân có dấu phẩy
             let regex = new RegExp(`${kw}(?:\\s+là|\\s+bằng|\\s*[:=])?\\s*(-?\\s*\\d+(?:,\\d+)?)`, "i");
             let match = str.match(regex);
             if (match) {
@@ -409,7 +413,7 @@ function processFullVoiceNLP(t) {
     else if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?y\b/i.test(str)) { setOri('Y'); updatedCount++; }
     else if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?(z|zét|zed)\b/i.test(str)) { setOri('Z'); updatedCount++; }
 
-    // 2. Nhận diện Position (X, Y, Z)
+    // 2. Nhận diện Position (X, Y, Z - Bắt chuẩn từ đồng âm)
     let posX = findVal(["tọa độ x", "vị trí x", "pos x", "position x", "đồ ít", "tọa độ ít", "tọa độ xy", "x"]);
     let posY = findVal(["tọa độ y", "vị trí y", "pos y", "position y", "y"]);
     let posZ = findVal(["tọa độ zét", "tọa độ zed", "tọa độ z", "vị trí z", "pos z", "position z", "z"]);
@@ -447,7 +451,7 @@ function processFullVoiceNLP(t) {
         updatedCount++;
     }
 
-    // 5. Nếu nói chuỗi số tự do
+    // 5. Nếu nói chuỗi số tự do (Không có từ khóa định danh)
     if (updatedCount === 0) {
         let rawNums = str.match(/-?\d+(,\d+)?/g);
         if (rawNums && rawNums.length >= 3) {
@@ -458,6 +462,7 @@ function processFullVoiceNLP(t) {
         }
     }
 
+    // Phản hồi kết quả
     if (updatedCount > 0) {
         draw();
         let successMsg = "File của bạn đã được tạo xong";
@@ -478,6 +483,7 @@ function speak(t) {
     window.speechSynthesis.speak(u);
 }
 
+/* 4. CHỈNH SỬA CHUẨN ORI KHI XUẤT FILE .MAC THEO ĐÚNG HƯỚNG ĐƯỢC CHỌN */
 function saveFile() {
     let px = parseInputValue("px");
     let py = parseInputValue("py");
