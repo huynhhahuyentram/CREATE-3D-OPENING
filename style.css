@@ -54,7 +54,7 @@ body {
 /* ===== CANVAS 3D - THU NHỎ ===== */
 #view {
     width: 100%;
-    height: 200px;  /* Giảm từ 300px xuống 200px */
+    height: 200px;
     background: var(--bg-secondary);
     border-radius: var(--radius);
     border: 1px solid var(--border-color);
@@ -128,7 +128,7 @@ h3 {
 
 .input-item input {
     flex: 1;
-    height: 36px;  /* Giảm từ 40px xuống 36px */
+    height: 36px;
     font-size: 13px;
     font-weight: 500;
     color: var(--text-primary);
@@ -190,7 +190,7 @@ input[type=number] {
 
 .radius input {
     width: 100%;
-    height: 36px;  /* Giảm từ 40px xuống 36px */
+    height: 36px;
     margin-top: 4px;
     font-size: 13px;
     font-weight: 500;
@@ -226,7 +226,7 @@ input[type=number] {
 
 .ori button {
     width: 64px;
-    height: 38px;  /* Giảm từ 42px xuống 38px */
+    height: 38px;
     border: 1.5px solid var(--border-color);
     border-radius: 8px;
     background: var(--bg-input);
@@ -251,265 +251,4 @@ input[type=number] {
     color: #ffffff;
     border-color: var(--accent-blue);
     box-shadow: 0 4px 20px rgba(26, 140, 255, 0.35);
-    transform: translateY(-2px);
-}
-
-.ori .active:hover {
-    background: var(--accent-blue-hover);
-    box-shadow: 0 6px 28px rgba(26, 140, 255, 0.45);
-}
-
-/* ===== BUTTONS ===== */
-.btns {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
-    flex-wrap: wrap;
-}
-
-.btns button {
-    flex: 1;
-    min-width: 90px;
-    height: 42px;  /* Giảm từ 46px xuống 42px */
-    border: none;
-    border-radius: 8px;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-    transition: var(--transition);
-    letter-spacing: 0.3px;
-    font-family: 'Segoe UI', 'Inter', sans-serif;
-    position: relative;
-    overflow: hidden;
-}
-
-.btns button::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
-    pointer-events: none;
-}
-
-.btns button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-}
-
-.btns button:active {
-    transform: translateY(0px) scale(0.98);
-}
-
-.ok {
-    background: linear-gradient(135deg, #1a8cff, #0066cc);
-}
-.ok:hover {
-    background: linear-gradient(135deg, #3d9eff, #1a8cff);
-}
-
-.voice {
-    background: linear-gradient(135deg, #7c4dff, #651fff);
-}
-.voice:hover {
-    background: linear-gradient(135deg, #9d6fff, #7c4dff);
-}
-
-.help {
-    background: linear-gradient(135deg, #00c853, #009624);
-}
-.help:hover {
-    background: linear-gradient(135deg, #00e676, #00c853);
-}
-
-.reset {
-    background: linear-gradient(135deg, #ff1744, #d50000);
-}
-.reset:hover {
-    background: linear-gradient(135deg, #ff5252, #ff1744);
-}
-
-/* ===== CHAT / LOG - TĂNG KÍCH THƯỚC ===== */
-#chat {
-    height: 180px;  /* Tăng từ 110px lên 180px */
-    margin-top: 16px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 14px 18px;
-    overflow-y: auto;
-    font-size: 14px;  /* Tăng từ 13px lên 14px */
-    color: var(--text-secondary);
-    line-height: 1.9;
-    font-family: 'Segoe UI', 'Inter', monospace;
-    transition: var(--transition);
-}
-
-#chat:focus-within {
-    border-color: var(--border-focus);
-}
-
-/* ===== CUSTOM SCROLLBAR ===== */
-#chat::-webkit-scrollbar {
-    width: 5px;
-}
-#chat::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-    border-radius: 10px;
-}
-#chat::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 10px;
-}
-#chat::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-blue);
-}
-
-#chat div {
-    padding: 3px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-#chat div:last-child {
-    border-bottom: none;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-    body {
-        padding: 12px;
-    }
-    
-    .panel {
-        padding: 16px 14px;
-    }
-    
-    .row {
-        flex-direction: column;
-        gap: 0;
-    }
-    
-    .box {
-        margin-bottom: 6px;
-    }
-    
-    .input-item label {
-        width: 55px;
-        font-size: 12px;
-    }
-    
-    .input-item input {
-        height: 34px;
-        font-size: 12px;
-    }
-    
-    .radius {
-        gap: 6px;
-    }
-    
-    .radius label {
-        min-width: 40px;
-        font-size: 10px;
-    }
-    
-    .radius input {
-        height: 34px;
-        font-size: 12px;
-    }
-    
-    .btns button {
-        min-width: 60px;
-        font-size: 11px;
-        height: 38px;
-    }
-    
-    .ori button {
-        width: 54px;
-        height: 34px;
-        font-size: 13px;
-    }
-    
-    #view {
-        height: 160px;  /* Giảm cho mobile */
-    }
-    
-    #chat {
-        height: 140px;  /* Giảm cho mobile nhưng vẫn lớn hơn cũ */
-        font-size: 13px;
-        padding: 12px 14px;
-    }
-    
-    h3 {
-        font-size: 12px;
-    }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 8px;
-    }
-    
-    .panel {
-        padding: 10px 8px;
-    }
-    
-    .btns {
-        flex-direction: column;
-    }
-    
-    .btns button {
-        min-width: 100%;
-    }
-    
-    .input-item {
-        flex-wrap: wrap;
-    }
-    
-    .input-item input {
-        width: 100%;
-        flex: none;
-    }
-    
-    .input-item label {
-        width: 100%;
-        margin-bottom: 2px;
-    }
-    
-    .radius {
-        flex-direction: column;
-    }
-    
-    #view {
-        height: 140px;
-    }
-    
-    #chat {
-        height: 120px;
-        font-size: 12px;
-        padding: 10px 12px;
-    }
-}
-
-/* ===== ANIMATION ===== */
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-}
-
-/* ===== VOICE LISTENING STATE ===== */
-.voice.listening {
-    animation: pulse 1s ease-in-out infinite;
-    box-shadow: 0 0 40px rgba(124, 77, 255, 0.5);
-}
-
-/* ===== STATUS INDICATOR ===== */
-.status-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 8px;
-}
-.status-dot.green { background: var(--accent-green); }
-.status-dot.red { background: var(--accent-red); }
-.status-dot.blue { background: var(--accent-blue); }
+    transform: translateY
