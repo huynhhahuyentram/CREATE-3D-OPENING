@@ -330,7 +330,6 @@ function voice() {
     u.lang = "vi-VN";
     u.rate = 0.95;
 
-    // Chỉ bật Mic khi câu chào đã phát thành công toàn bộ
     u.onend = () => {
         log("🔴 <i>Đang nghe...</i>");
         let r = new SR();
@@ -347,7 +346,7 @@ function voice() {
             silenceTimer = setTimeout(() => {
                 r.stop();
                 processFullVoiceNLP(text);
-            }, 2500);
+            }, 2000);
         };
 
         r.onerror = () => {
@@ -365,31 +364,38 @@ function voice() {
 function processFullVoiceNLP(t) {
     log("👤 " + t);
 
-    // 1. Chuẩn hóa giọng nói tự nhiên
+    // 1. Chuẩn hóa giọng nói tự nhiên, đổi các từ chỉ số âm & dấu thập phân
     let str = t.toLowerCase()
                .replace(/\b(âm|trừ)\b/g, "-")
                .replace(/\bphẩy\b/g, ",")
                .replace(/\bchấm\b/g, "");
 
-    // 2. Xóa bỏ toàn bộ dấu chấm phân cách hàng nghìn (VD: 5.000.000,5 -> 5000000,5)
+    // 2. Xóa các dấu chấm phân cách hàng nghìn (VD: 5.000 -> 5000)
     str = str.replace(/(\d+)\.(\d+)/g, '$1$2');
 
     let updatedCount = 0;
 
-    // Chuyển dấu phẩy thành dấu chấm tiêu chuẩn cho thẻ Input HTML
     const cleanNumberString = (numStr) => {
         if (!numStr) return "0";
         numStr = numStr.trim().replace(/\s+/g, '');
         return numStr.replace(',', '.');
     };
 
+    // Hàm nhận diện số đứng TRƯỚC hoặc SAU từ khóa
     const findVal = (keywords) => {
         for (let kw of keywords) {
-            // Regex hỗ trợ trích xuất chính xác mọi loại số: số âm, số dương, số hàng nghìn/trăm nghìn, số thập phân
-            let regex = new RegExp(`${kw}(?:\\s+là|\\s+bằng|\\s*[:=])?\\s*(-?\\s*\\d+(?:,\\d+)?)`, "i");
-            let match = str.match(regex);
-            if (match) {
-                return cleanNumberString(match[1]);
+            // Trường hợp 1: Số nằm SAU từ khóa (VD: chiều cao 2000, r1 là 150)
+            let regAfter = new RegExp(`${kw}(?:\\s+là|\\s+bằng|\\s*[:=])?\\s*(-?\\s*\\d+(?:,\\d+)?)`, "i");
+            let matchAfter = str.match(regAfter);
+            if (matchAfter) {
+                return cleanNumberString(matchAfter[1]);
+            }
+            
+            // Trường hợp 2: Số nằm TRƯỚC từ khóa (VD: 2000 chiều cao, -500 vị trí x)
+            let regBefore = new RegExp(`(-?\\s*\\d+(?:,\\d+)?)\\s*(?:mm)?\\s*${kw}`, "i");
+            let matchBefore = str.match(regBefore);
+            if (matchBefore) {
+                return cleanNumberString(matchBefore[1]);
             }
         }
         return null;
@@ -415,7 +421,7 @@ function processFullVoiceNLP(t) {
     else if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?y\b/i.test(str)) { setOri('Y'); updatedCount++; }
     else if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?(z|zét|zed)\b/i.test(str)) { setOri('Z'); updatedCount++; }
 
-    // 5. NHẬN DIỆN POSITION (Tọa độ X, Y, Z - bắt lỗi đồng âm từ "ít", "xy", "zét")
+    // 5. NHẬN DIỆN POSITION (X, Y, Z)
     let posX = findVal(["tọa độ x", "vị trí x", "pos x", "position x", "đồ ít", "tọa độ ít", "tọa độ xy", "x"]);
     let posY = findVal(["tọa độ y", "vị trí y", "pos y", "position y", "y"]);
     let posZ = findVal(["tọa độ zét", "tọa độ zed", "tọa độ z", "vị trí z", "pos z", "position z", "z"]);
@@ -424,7 +430,7 @@ function processFullVoiceNLP(t) {
     if (posY !== null) { document.getElementById("py").value = posY; updatedCount++; }
     if (posZ !== null) { document.getElementById("pz").value = posZ; updatedCount++; }
 
-    // 6. NHẬN DIỆN DIMENSION (Kích thước L, W, H)
+    // 6. NHẬN DIỆN KÍCH THƯỚC (L, W, H)
     let len = findVal(["chiều dài", "độ dài", "dài", "length", "l"]);
     let wid = findVal(["chiều rộng", "độ rộng", "rộng", "width", "w"]);
     let hei = findVal(["chiều cao", "độ cao", "cao", "height", "h"]);
@@ -433,19 +439,20 @@ function processFullVoiceNLP(t) {
     if (wid !== null) { document.getElementById("dy").value = wid; updatedCount++; }
     if (hei !== null) { document.getElementById("dz").value = hei; updatedCount++; }
 
-    // 7. NHẬN DIỆN CORNER RADIUS (R1, R2, R3, R4)
+    // 7. NHẬN DIỆN BO GÓC (R1, R2, R3, R4)
     let rad1 = findVal(["r1", "radius 1", "bo góc 1", "bán kính 1"]);
     let rad2 = findVal(["r2", "radius 2", "bo góc 2", "bán kính 2"]);
     let rad3 = findVal(["r3", "radius 3", "bo góc 3", "bán kính 3"]);
     let rad4 = findVal(["r4", "radius 4", "bo góc 4", "bán kính 4"]);
-    let radAll = findVal(["bo góc", "bán kính", "radius", "r"]);
+    let radAll = findVal(["bo góc tất cả", "bo cả 4 góc", "tất cả góc bo", "bán kính bo", "bo góc"]);
 
     if (rad1 !== null) { document.getElementById("r1").value = rad1; updatedCount++; }
     if (rad2 !== null) { document.getElementById("r2").value = rad2; updatedCount++; }
     if (rad3 !== null) { document.getElementById("r3").value = rad3; updatedCount++; }
     if (rad4 !== null) { document.getElementById("r4").value = rad4; updatedCount++; }
     
-    if (radAll !== null && rad1 === null && rad2 === null && rad3 === null && rad4 === null) {
+    // Chỉ cập nhật bo góc chung khi không có thông số kích thước/tọa độ đè vào
+    if (radAll !== null && rad1 === null && rad2 === null && rad3 === null && rad4 === null && len === null && wid === null && hei === null) {
         document.getElementById("r1").value = radAll;
         document.getElementById("r2").value = radAll;
         document.getElementById("r3").value = radAll;
@@ -453,7 +460,7 @@ function processFullVoiceNLP(t) {
         updatedCount++;
     }
 
-    // 8. Nếu nói dải số tự do liên tiếp (VD: "-200,5 3000,8 -4500")
+    // 8. Nếu đọc chuỗi 3 số liên tiếp tự do (VD: "-200,5 3000 -4500")
     if (updatedCount === 0) {
         let rawNums = str.match(/-?\d+(,\d+)?/g);
         if (rawNums && rawNums.length >= 3) {
@@ -464,7 +471,7 @@ function processFullVoiceNLP(t) {
         }
     }
 
-    // PHẢN HỒI VỚI BOX CHAT VÀ PHÁT ÂM
+    // PHẢN HỒI LẠI TRÊN BÀN HÌNH VÀ PHÁT ÂM
     if (updatedCount > 0) {
         draw();
         let successMsg = "File của bạn đã được tạo xong";
