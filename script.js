@@ -374,6 +374,7 @@ function processFullVoiceNLP(t) {
     str = str.replace(/(\d+)\.(\d+)/g, '$1$2');
 
     let updatedCount = 0;
+    let buttonExecutedMsg = null;
 
     const cleanNumberString = (numStr) => {
         if (!numStr) return "0";
@@ -384,14 +385,12 @@ function processFullVoiceNLP(t) {
     // Hàm nhận diện số đứng TRƯỚC hoặc SAU từ khóa
     const findVal = (keywords) => {
         for (let kw of keywords) {
-            // Trường hợp 1: Số nằm SAU từ khóa (VD: chiều cao 2000, r1 là 150)
             let regAfter = new RegExp(`${kw}(?:\\s+là|\\s+bằng|\\s*[:=])?\\s*(-?\\s*\\d+(?:,\\d+)?)`, "i");
             let matchAfter = str.match(regAfter);
             if (matchAfter) {
                 return cleanNumberString(matchAfter[1]);
             }
             
-            // Trường hợp 2: Số nằm TRƯỚC từ khóa (VD: 2000 chiều cao, -500 vị trí x)
             let regBefore = new RegExp(`(-?\\s*\\d+(?:,\\d+)?)\\s*(?:mm)?\\s*${kw}`, "i");
             let matchBefore = str.match(regBefore);
             if (matchBefore) {
@@ -401,19 +400,23 @@ function processFullVoiceNLP(t) {
         return null;
     };
 
-    // 3. NHẬN DIỆN LỆNH NÚT BẤM BÊN DƯỚI
-    if (/(xuất mac|export|tải file|tạo file|lưu file|ok)/i.test(str)) {
+    // 3. NHẬN DIỆN LỆNH NÚT BẤM BÊN DƯỚI (LINH HOẠT ANH - VIỆT)
+    if (/(xuất mac|xuất file|tải mac|tải file|export|export mac|save file|lưu file|tạo file|tạo mac)/i.test(str)) {
         saveFile();
         updatedCount++;
-    } else if (/(trợ giúp|hướng dẫn|help)/i.test(str)) {
-        help();
-        updatedCount++;
-    } else if (/(thư viện|library)/i.test(str)) {
-        library();
-        updatedCount++;
-    } else if (/(đặt lại|reset|làm mới|xóa hết)/i.test(str)) {
+        buttonExecutedMsg = "Đã xuất file";
+    } else if (/(đặt lại|reset|làm mới|xóa hết|xóa dữ liệu|nhập lại|clear)/i.test(str)) {
         reset();
         updatedCount++;
+        buttonExecutedMsg = "Đã Reset số liệu";
+    } else if (/(thư viện|library|mở thư viện|open library)/i.test(str)) {
+        library();
+        updatedCount++;
+        buttonExecutedMsg = "Đã truy cập thư viện";
+    } else if (/(trợ giúp|hướng dẫn|help|xem hướng dẫn|open help)/i.test(str)) {
+        help();
+        updatedCount++;
+        buttonExecutedMsg = "Đã truy cập hướng dẫn";
     }
 
     // 4. NHẬN DIỆN ORIENTATION
@@ -451,7 +454,6 @@ function processFullVoiceNLP(t) {
     if (rad3 !== null) { document.getElementById("r3").value = rad3; updatedCount++; }
     if (rad4 !== null) { document.getElementById("r4").value = rad4; updatedCount++; }
     
-    // Chỉ cập nhật bo góc chung khi không có thông số kích thước/tọa độ đè vào
     if (radAll !== null && rad1 === null && rad2 === null && rad3 === null && rad4 === null && len === null && wid === null && hei === null) {
         document.getElementById("r1").value = radAll;
         document.getElementById("r2").value = radAll;
@@ -471,12 +473,12 @@ function processFullVoiceNLP(t) {
         }
     }
 
-    // PHẢN HỒI LẠI TRÊN BÀN HÌNH VÀ PHÁT ÂM
+    // PHẢN HỒI LẠI TRÊN MÀN HÌNH VÀ PHÁT ÂM
     if (updatedCount > 0) {
         draw();
-        let successMsg = "File của bạn đã được tạo xong";
-        log("🤖 " + successMsg);
-        speak(successMsg);
+        let speakMsg = buttonExecutedMsg ? buttonExecutedMsg : "File của bạn đã được tạo xong";
+        log("🤖 " + speakMsg);
+        speak(speakMsg);
     } else {
         let failMsg = "Chưa nhận diện được thông số, vui lòng thử lại!";
         log("🤖 " + failMsg);
