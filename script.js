@@ -1,7 +1,9 @@
 const c = document.getElementById("view");
 const ctx = c.getContext("2d");
+const voiceBtn = document.getElementById("voiceBtn");
 
 let ORI = "Z";
+let isListening = false;
 
 function setOri(o) {
     ORI = o;
@@ -13,8 +15,6 @@ function setOri(o) {
 function parseInputValue(id) {
     let raw = (document.getElementById(id).value || "").toString().trim();
     if (!raw) return 0;
-    
-    // Loại bỏ hoàn toàn dấu chấm (nếu có) và xử lý dấu phẩy làm phần thập phân
     raw = raw.replace(/\./g, '').replace(',', '.');
     return parseFloat(raw) || 0;
 }
@@ -28,6 +28,13 @@ function draw() {
     let H = parseInputValue("dz");
 
     ctx.clearRect(0, 0, c.width, c.height);
+
+    // Vẽ background gradient
+    let grad = ctx.createLinearGradient(0, 0, 0, c.height);
+    grad.addColorStop(0, 'rgba(26, 140, 255, 0.03)');
+    grad.addColorStop(1, 'rgba(124, 77, 255, 0.03)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, c.width, c.height);
 
     drawAxis();
 
@@ -43,40 +50,53 @@ function draw() {
     let cx = c.width / 2 - 20;
     let cy = c.height / 2 + 30;
 
+    // Chọn màu theo orientation
+    let colors = {
+        border: '#1a8cff',
+        fill: 'rgba(26, 140, 255, 0.12)',
+        label: '#e8edf5'
+    };
+    if (ORI === 'X') {
+        colors.border = '#ff6d00';
+        colors.fill = 'rgba(255, 109, 0, 0.12)';
+    } else if (ORI === 'Y') {
+        colors.border = '#00c853';
+        colors.fill = 'rgba(0, 200, 83, 0.12)';
+    }
+
     if (ORI === "Z") {
-        drawBox3DSharp(cx, cy, l, w, h, `L=${L}`, `W=${W}`, `H=${H}`);
+        drawBox3DSharp(cx, cy, l, w, h, `L=${L}`, `W=${W}`, `H=${H}`, colors);
     } else if (ORI === "X") {
-        drawBox3DSharp(cx, cy, h, w, l, `H=${H}`, `W=${W}`, `L=${L}`);
+        drawBox3DSharp(cx, cy, h, w, l, `H=${H}`, `W=${W}`, `L=${L}`, colors);
     } else if (ORI === "Y") {
-        drawBox3DSharp(cx, cy, l, h, w, `L=${L}`, `H=${H}`, `W=${W}`);
+        drawBox3DSharp(cx, cy, l, h, w, `L=${L}`, `H=${H}`, `W=${W}`, colors);
     }
 }
 
-/* 1. TRỤC TỌA ĐỘ CHUẨN */
 function drawAxis() {
     ctx.lineWidth = 2.5;
     ctx.font = "bold 13px Segoe UI";
 
     let x0 = 50, y0 = 220;
 
-    ctx.strokeStyle = "#e74c3c";
-    ctx.fillStyle = "#e74c3c";
+    ctx.strokeStyle = "#ff1744";
+    ctx.fillStyle = "#ff1744";
     ctx.beginPath();
     ctx.moveTo(x0, y0);
     ctx.lineTo(x0 + 50, y0);
     ctx.stroke();
     ctx.fillText("X", x0 + 55, y0 + 4);
 
-    ctx.strokeStyle = "#2980b9";
-    ctx.fillStyle = "#2980b9";
+    ctx.strokeStyle = "#00c853";
+    ctx.fillStyle = "#00c853";
     ctx.beginPath();
     ctx.moveTo(x0, y0);
     ctx.lineTo(x0 + 35, y0 - 35);
     ctx.stroke();
     ctx.fillText("Y", x0 + 40, y0 - 38);
 
-    ctx.strokeStyle = "#27ae60";
-    ctx.fillStyle = "#27ae60";
+    ctx.strokeStyle = "#1a8cff";
+    ctx.fillStyle = "#1a8cff";
     ctx.beginPath();
     ctx.moveTo(x0, y0);
     ctx.lineTo(x0, y0 - 50);
@@ -84,18 +104,16 @@ function drawAxis() {
     ctx.fillText("Z", x0 - 4, y0 - 55);
 }
 
-/* 2. CHUYỂN ĐỔI TỌA ĐỘ ISOMETRIC CHUẨN */
 function projectISO(x, y, z, cx, cy) {
-    let kY = 0.55; 
+    let kY = 0.55;
     return {
         x: cx + x + y * kY,
         y: cy - z - y * kY
     };
 }
 
-/* 3. VẼ HÌNH HỘP CHỮ NHẬT 3D PHẲNG KHÔNG BO GÓC */
-function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3) {
-    ctx.lineWidth = 1.8;
+function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, colors) {
+    ctx.lineWidth = 2;
     let offsetX = cx - d1 / 2;
     let offsetY = cy + d3 / 2;
 
@@ -109,9 +127,11 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3) {
     let t2 = projectISO(d1, d2, d3, offsetX, offsetY);
     let t3 = projectISO(0, d2, d3, offsetX, offsetY);
 
-    ctx.strokeStyle = "#0000ff";
-    ctx.fillStyle = "rgba(59, 130, 246, 0.12)";
+    // Với màu sắc từ param
+    ctx.strokeStyle = colors.border || "#1a8cff";
+    ctx.fillStyle = colors.fill || "rgba(26, 140, 255, 0.12)";
 
+    // Đáy
     ctx.beginPath();
     ctx.moveTo(b0.x, b0.y);
     ctx.lineTo(b1.x, b1.y);
@@ -121,6 +141,7 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3) {
     ctx.stroke();
     ctx.fill();
 
+    // Cạnh đứng
     let bEdges = [b0, b1, b2, b3];
     let tEdges = [t0, t1, t2, t3];
     for (let i = 0; i < 4; i++) {
@@ -130,6 +151,7 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3) {
         ctx.stroke();
     }
 
+    // Mặt trên
     ctx.beginPath();
     ctx.moveTo(t0.x, t0.y);
     ctx.lineTo(t1.x, t1.y);
@@ -139,7 +161,8 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3) {
     ctx.stroke();
     ctx.fill();
 
-    ctx.fillStyle = "#1e293b";
+    // Labels
+    ctx.fillStyle = colors.label || "#e8edf5";
     ctx.font = "bold 13px Segoe UI";
 
     let c1 = projectISO(d1 / 2, 0, 0, offsetX, offsetY);
@@ -164,6 +187,10 @@ function voice() {
         return;
     }
 
+    // Thêm class listening cho nút
+    if (voiceBtn) voiceBtn.classList.add('listening');
+    isListening = true;
+
     let startMsg = "Xin chào, tôi có thể giúp gì cho bạn";
     log("🤖 " + startMsg);
 
@@ -172,24 +199,24 @@ function voice() {
     u.lang = "vi-VN";
     u.rate = 0.95;
 
-    // ĐẢM BẢO CHỈ BẬT MIC SAU KHI NÓI XONG CÂU XIN CHÀO
     u.onend = () => {
-        log("🔴 <i>Đang nghe...</i>");
+        log("🔴 Đang nghe...");
         let r = new SR();
-        r.lang = "vi-VN"; 
-        r.continuous = true; // Cho phép nói dài không bị ngắt giữa chừng
+        r.lang = "vi-VN";
+        r.continuous = true;
         r.interimResults = false;
 
         let silenceTimer = null;
 
         r.onresult = e => {
             let text = e.results[e.results.length - 1][0].transcript;
-            
-            // TĂNG THỜI GIAN CHỜ: Đợi 2.5s không có tiếng nói mới tắt mic để xử lý
             clearTimeout(silenceTimer);
             silenceTimer = setTimeout(() => {
                 r.stop();
                 processFullVoiceNLP(text);
+                // Xóa class listening khi xong
+                if (voiceBtn) voiceBtn.classList.remove('listening');
+                isListening = false;
             }, 2500);
         };
 
@@ -197,6 +224,8 @@ function voice() {
             let errorMsg = "Chưa nhận diện được thông số, vui lòng thử lại!";
             log("🤖 " + errorMsg);
             speak(errorMsg);
+            if (voiceBtn) voiceBtn.classList.remove('listening');
+            isListening = false;
         };
 
         r.start();
@@ -208,18 +237,15 @@ function voice() {
 function processFullVoiceNLP(t) {
     log("👤 " + t);
 
-    // 1. CHUẨN HÓA VĂN BẢN
     let str = t.toLowerCase()
                .replace(/\b(âm|trừ)\b/g, "-")
                .replace(/\bphẩy\b/g, ",")
                .replace(/\bchấm\b/g, "");
 
-    // 2. LOẠI BỎ TOÀN BỘ DẤU CHẤM HÀNG NGHÌN (VD: "5.007,5" -> "5007,5")
     str = str.replace(/(\d+)\.(\d+)/g, '$1$2');
 
     let updatedCount = 0;
 
-    // Hàm làm sạch và chuyển đổi dấu phẩy duy nhất thành dấu chấm thập phân tiêu chuẩn HTML
     const cleanNumberString = (numStr) => {
         if (!numStr) return "0";
         numStr = numStr.trim().replace(/\s+/g, '');
@@ -228,7 +254,6 @@ function processFullVoiceNLP(t) {
 
     const findVal = (keywords) => {
         for (let kw of keywords) {
-            // Regex nhận diện chính xác số âm, số nguyên và số thập phân có dấu phẩy
             let regex = new RegExp(`${kw}(?:\\s+là|\\s+bằng|\\s*[:=])?\\s*(-?\\s*\\d+(?:,\\d+)?)`, "i");
             let match = str.match(regex);
             if (match) {
@@ -238,12 +263,12 @@ function processFullVoiceNLP(t) {
         return null;
     };
 
-    // 1. Nhận diện Orientation
+    // Orientation
     if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?x\b/i.test(str)) { setOri('X'); updatedCount++; }
     else if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?y\b/i.test(str)) { setOri('Y'); updatedCount++; }
     else if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?(z|zét|zed)\b/i.test(str)) { setOri('Z'); updatedCount++; }
 
-    // 2. Nhận diện Position (X, Y, Z - Bắt chuẩn từ đồng âm)
+    // Position
     let posX = findVal(["tọa độ x", "vị trí x", "pos x", "position x", "đồ ít", "tọa độ ít", "tọa độ xy", "x"]);
     let posY = findVal(["tọa độ y", "vị trí y", "pos y", "position y", "y"]);
     let posZ = findVal(["tọa độ zét", "tọa độ zed", "tọa độ z", "vị trí z", "pos z", "position z", "z"]);
@@ -252,7 +277,7 @@ function processFullVoiceNLP(t) {
     if (posY !== null) { document.getElementById("py").value = posY; updatedCount++; }
     if (posZ !== null) { document.getElementById("pz").value = posZ; updatedCount++; }
 
-    // 3. Nhận diện Dimension (L, W, H)
+    // Dimension
     let len = findVal(["chiều dài", "độ dài", "dài", "length", "l"]);
     let wid = findVal(["chiều rộng", "độ rộng", "rộng", "width", "w"]);
     let hei = findVal(["chiều cao", "độ cao", "cao", "height", "h"]);
@@ -261,7 +286,7 @@ function processFullVoiceNLP(t) {
     if (wid !== null) { document.getElementById("dy").value = wid; updatedCount++; }
     if (hei !== null) { document.getElementById("dz").value = hei; updatedCount++; }
 
-    // 4. Nhận diện Corner Radius (R1, R2, R3, R4)
+    // Corner Radius
     let rad1 = findVal(["r1", "radius 1", "bo góc 1", "bán kính 1"]);
     let rad2 = findVal(["r2", "radius 2", "bo góc 2", "bán kính 2"]);
     let rad3 = findVal(["r3", "radius 3", "bo góc 3", "bán kính 3"]);
@@ -281,7 +306,7 @@ function processFullVoiceNLP(t) {
         updatedCount++;
     }
 
-    // 5. Nếu nói chuỗi số tự do (Không có từ khóa định danh)
+    // Số tự do
     if (updatedCount === 0) {
         let rawNums = str.match(/-?\d+(,\d+)?/g);
         if (rawNums && rawNums.length >= 3) {
@@ -292,14 +317,13 @@ function processFullVoiceNLP(t) {
         }
     }
 
-    // Phản hồi kết quả
     if (updatedCount > 0) {
         draw();
-        let successMsg = "File của bạn đã được tạo xong";
+        let successMsg = "✅ Đã cập nhật thông số!";
         log("🤖 " + successMsg);
         speak(successMsg);
     } else {
-        let failMsg = "Chưa nhận diện được thông số, vui lòng thử lại!";
+        let failMsg = "❌ Chưa nhận diện được thông số, vui lòng thử lại!";
         log("🤖 " + failMsg);
         speak(failMsg);
     }
@@ -313,7 +337,6 @@ function speak(t) {
     window.speechSynthesis.speak(u);
 }
 
-/* 4. CHỈNH SỬA CHUẨN ORI KHI XUẤT FILE .MAC THEO ĐÚNG HƯỚNG ĐƯỢC CHỌN */
 function saveFile() {
     let px = parseInputValue("px");
     let py = parseInputValue("py");
@@ -382,29 +405,10 @@ END`;
     a.href = URL.createObjectURL(blob);
     a.download = "Opening.mac";
     a.click();
+    
+    log("📁 Đã xuất file Opening.mac");
 }
 
 function reset() {
     document.getElementById("px").value = 0;
-    document.getElementById("py").value = 0;
-    document.getElementById("pz").value = 0;
-    document.getElementById("dx").value = 0;
-    document.getElementById("dy").value = 0;
-    document.getElementById("dz").value = 0;
-    document.getElementById("r1").value = 150;
-    document.getElementById("r2").value = 150;
-    document.getElementById("r3").value = 150;
-    document.getElementById("r4").value = 150;
-    setOri('Z');
-}
-
-function help() {
-    window.open("https://drive.google.com/file/d/14NNDzXSCG63m1yQZb51tZhrZfd5k8KPf/view?usp=sharing");
-}
-
-document.querySelectorAll("input").forEach(i => {
-    i.addEventListener("input", draw);
-});
-
-window.addEventListener("resize", draw);
-draw();
+    document.getElementById("py").value = 0
