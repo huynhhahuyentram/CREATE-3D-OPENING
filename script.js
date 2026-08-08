@@ -341,7 +341,7 @@ function log(t) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// ===== VOICE RECOGNITION CẢI TIẾN - CHỜ NGƯỜI DÙNG NÓI =====
+// ===== VOICE RECOGNITION CẢI TIẾN - NHẬN DIỆN TẤT CẢ CÁC LOẠI SỐ =====
 function voice() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
@@ -405,9 +405,7 @@ function voice() {
         };
 
         r.onerror = (e) => {
-            // Chỉ báo lỗi nếu đã có kết quả
             if (e.error === 'no-speech') {
-                // Không có giọng nói - không làm gì
                 return;
             }
             
@@ -418,7 +416,6 @@ function voice() {
                 return;
             }
             
-            // Các lỗi khác - chỉ log nếu đã có kết quả
             if (hasReceivedResult && finalText && !isProcessing) {
                 isProcessing = true;
                 processFullVoiceNLP(finalText);
@@ -427,13 +424,11 @@ function voice() {
         };
 
         r.onend = () => {
-            // Nếu kết thúc mà có kết quả và chưa xử lý
             if (finalText && !isProcessing) {
                 isProcessing = true;
                 processFullVoiceNLP(finalText);
                 isProcessing = false;
             }
-            // Không có giọng nói -> không làm gì, không báo lỗi
         };
 
         try {
@@ -448,21 +443,83 @@ function voice() {
     window.speechSynthesis.speak(u);
 }
 
+// HÀM CHUYỂN ĐỔI SỐ TỪ CHỮ SANG SỐ
+function convertVietnameseNumberToNumber(text) {
+    // Xử lý các trường hợp đặc biệt: "một" -> "1", "hai" -> "2", ...
+    const numberMap = {
+        'không': '0', 'một': '1', 'hai': '2', 'ba': '3', 'bốn': '4',
+        'năm': '5', 'sáu': '6', 'bảy': '7', 'tám': '8', 'chín': '9',
+        'mười': '10', 'trăm': '100', 'ngàn': '1000', 'nghìn': '1000',
+        'triệu': '1000000', 'tỷ': '1000000000', 'tỉ': '1000000000',
+        'âm': '-', 'trừ': '-', 'rưỡi': '.5', 'phẩy': '.'
+    };
+    
+    // Xử lý số âm
+    let isNegative = false;
+    let processedText = text;
+    
+    // Kiểm tra từ "âm" hoặc "trừ" ở đầu
+    if (/^(âm|trừ)\s+/i.test(processedText)) {
+        isNegative = true;
+        processedText = processedText.replace(/^(âm|trừ)\s+/i, '');
+    }
+    
+    // Thay thế từng từ bằng số
+    let result = processedText;
+    for (let [word, num] of Object.entries(numberMap)) {
+        // Chỉ thay thế khi từ đứng riêng
+        let regex = new RegExp('\\b' + word + '\\b', 'gi');
+        result = result.replace(regex, num);
+    }
+    
+    // Xử lý dấu phẩy và dấu chấm
+    result = result.replace(/\s*,\s*/g, ',');
+    result = result.replace(/\s*\.\s*/g, '.');
+    
+    // Xóa khoảng trắng thừa
+    result = result.replace(/\s+/g, ' ');
+    result = result.trim();
+    
+    // Nếu có dấu trừ
+    if (isNegative && !result.startsWith('-')) {
+        result = '-' + result;
+    }
+    
+    return result;
+}
+
 function processFullVoiceNLP(t) {
     log("👤 " + t);
 
-    // 1. CHUẨN HÓA VĂN BẢN
+    // 1. CHUẨN HÓA VĂN BẢN - XỬ LÝ SỐ TỰ NHIÊN
     let str = t.toLowerCase()
-               .replace(/\b(âm|trừ|âm\s*)\b/g, "-")
+               .replace(/\b(âm|trừ)\b/g, "-")
                .replace(/\bphẩy\b/g, ",")
                .replace(/\bchấm\b/g, "")
                .replace(/\b(độ|dộ)\b/g, "")
                .replace(/\b(milimét|mm|li|milimet)\b/g, "")
-               .replace(/\b(khoảng|khoang|khoản|khoản g)\b/g, "")
+               .replace(/\b(khoảng|khoang|khoản)\b/g, "")
                .replace(/\b(và|với|vơi)\b/g, " ");
 
-    str = str.replace(/(\d+)\s*phẩy\s*(\d+)/g, '$1,$2');
-    str = str.replace(/(\d+)\.(\d+)/g, '$1$2');
+    // 2. XỬ LÝ SỐ HÀNG TRĂM, NGHÌN, TRIỆU, TỶ
+    // Ví dụ: "một trăm hai mươi ba" -> "123"
+    // "hai nghìn ba trăm bốn mươi lăm" -> "2345"
+    // "một triệu hai trăm ba mươi tư nghìn năm trăm sáu mươi bảy" -> "1234567"
+    
+    // Chuyển đổi số từ chữ sang số
+    let numberStr = convertVietnameseNumberToNumber(str);
+    
+    // Tìm tất cả số trong câu (bao gồm số âm, số thập phân)
+    let allNumbers = numberStr.match(/-?\d+[.,]?\d*/g) || [];
+    
+    // Làm sạch số
+    let cleanNumbers = allNumbers.map(n => {
+        // Loại bỏ dấu chấm hàng nghìn
+        n = n.replace(/\./g, '');
+        // Chuyển dấu phẩy thành dấu chấm cho parseFloat
+        n = n.replace(',', '.');
+        return n;
+    });
 
     let updatedCount = 0;
     let detectedInfo = [];
@@ -470,13 +527,27 @@ function processFullVoiceNLP(t) {
     const cleanNumberString = (numStr) => {
         if (!numStr) return "0";
         numStr = numStr.trim().replace(/\s+/g, '');
+        // Loại bỏ dấu chấm hàng nghìn
+        numStr = numStr.replace(/\./g, '');
+        // Chuyển dấu phẩy thành dấu chấm
+        numStr = numStr.replace(',', '.');
         return numStr;
     };
 
+    // Hàm tìm số gần nhất với từ khóa
     const findVal = (keywords) => {
         for (let kw of keywords) {
-            let regex = new RegExp(`${kw}(?:\\s*(?:là|bằng|:|\\s))?\\s*(-?\\s*\\d+(?:[.,]\\d+)?)`, "i");
+            // Tìm từ khóa và số đằng sau
+            let regex = new RegExp(`${kw}(?:\\s*(?:là|bằng|:|\\s))?\\s*(-?\\s*[\\d.,]+)`, "i");
             let match = str.match(regex);
+            if (match) {
+                let val = cleanNumberString(match[1]);
+                if (val) return val;
+            }
+            
+            // Tìm từ khóa và số đằng trước
+            regex = new RegExp(`(-?\\s*[\\d.,]+)\\s*(?:\\s*(?:là|bằng|:|\\s))?\\s*${kw}`, "i");
+            match = str.match(regex);
             if (match) {
                 let val = cleanNumberString(match[1]);
                 if (val) return val;
@@ -505,7 +576,7 @@ function processFullVoiceNLP(t) {
         detectedInfo.push("Orientation: Z");
     }
 
-    // 2. NHẬN DIỆN POSITION (X, Y, Z)
+    // 2. NHẬN DIỆN POSITION (X, Y, Z) - SỬ DỤNG SỐ TỪ CLEAN NUMBERS
     let posX = findVal(["tọa độ x", "vị trí x", "pos x", "position x", "đồ ít", "tọa độ ít", "x"]);
     let posY = findVal(["tọa độ y", "vị trí y", "pos y", "position y", "y"]);
     let posZ = findVal(["tọa độ zét", "tọa độ zed", "tọa độ z", "vị trí z", "pos z", "position z", "zét", "zed", "z"]);
@@ -611,16 +682,27 @@ function processFullVoiceNLP(t) {
         return;
     }
 
-    // 6. NẾU KHÔNG CÓ TỪ KHÓA, THỬ NHẬN DIỆN CHUỖI SỐ
+    // 6. NẾU KHÔNG CÓ TỪ KHÓA, THỬ NHẬN DIỆN CHUỖI SỐ (HỖ TRỢ SỐ ÂM, SỐ LỚN)
     if (updatedCount === 0) {
+        // Lấy tất cả số từ text đã chuẩn hóa
         let rawNums = str.match(/-?\d+[.,]?\d*/g);
+        if (!rawNums || rawNums.length === 0) {
+            // Thử lấy từ chuỗi đã chuyển đổi số từ chữ
+            rawNums = numberStr.match(/-?\d+[.,]?\d*/g);
+        }
+        
         if (rawNums && rawNums.length >= 3) {
             let cleanNums = rawNums.map(n => cleanNumberString(n));
-            document.getElementById("dx").value = cleanNums[0] || 0;
-            document.getElementById("dy").value = cleanNums[1] || 0;
-            document.getElementById("dz").value = cleanNums[2] || 0;
+            // Lấy 3 số đầu tiên cho L, W, H
+            let vals = cleanNums.filter(n => n !== '0' && n !== '');
+            while (vals.length < 3) {
+                vals.push('0');
+            }
+            document.getElementById("dx").value = vals[0] || 0;
+            document.getElementById("dy").value = vals[1] || 0;
+            document.getElementById("dz").value = vals[2] || 0;
             updatedCount = 3;
-            detectedInfo.push(`Length: ${cleanNums[0]}mm, Width: ${cleanNums[1]}mm, Height: ${cleanNums[2]}mm`);
+            detectedInfo.push(`Length: ${vals[0]}mm, Width: ${vals[1]}mm, Height: ${vals[2]}mm`);
         }
     }
 
@@ -647,104 +729,4 @@ function speak(t) {
     window.speechSynthesis.speak(u);
 }
 
-/* 4. CHỈNH SỬA CHUẨN ORI KHI XUẤT FILE .MAC THEO ĐÚNG HƯỚNG ĐƯỢC CHỌN */
-function saveFile() {
-    let px = parseInputValue("px");
-    let py = parseInputValue("py");
-    let pz = parseInputValue("pz");
-
-    let L = parseInputValue("dx");
-    let W = parseInputValue("dy");
-    let H = parseInputValue("dz");
-
-    let r1 = parseInputValue("r1");
-    let r2 = parseInputValue("r2");
-    let r3 = parseInputValue("r3");
-    let r4 = parseInputValue("r4");
-
-    let oriStr = "ORI Y is Y and Z is Z";
-    if (ORI === "X") {
-        oriStr = "ORI Y is Y and Z is X";
-    } else if (ORI === "Y") {
-        oriStr = "ORI Y is -X and Z is Y";
-    } else if (ORI === "Z") {
-        oriStr = "ORI Y is Y and Z is Z";
-    }
-
-    let data = `NEW EQUIPMENT
-USRCOG ( X ( 0 ) Y ( 0 ) Z ( 0 ) )
-USRWCO ( X ( 0 ) Y ( 0 ) Z ( 0 ) )
-POS X ${px}mm Y ${py}mm Z ${pz}mm
-${oriStr}
-BUIL false
-DSCO unset
-PTSP unset
-INSC unset
-
-NEW EXTRUSION
-ORI Y is -Y and Z is Z
-LEVE 0 2
-HEIG ${H}mm
-
-NEW LOOP
-
-NEW VERTEX
-FRAD ${r1}mm
-
-END
-NEW VERTEX
-POS X 0mm Y ${W}mm Z 0mm
-FRAD ${r2}mm
-
-END
-NEW VERTEX
-POS X ${L}mm Y ${W}mm Z 0mm
-FRAD ${r3}mm
-
-END
-NEW VERTEX
-POS X ${L}mm Y 0mm Z 0mm
-FRAD ${r4}mm
-
-END
-END
-END
-END`;
-
-    let blob = new Blob([data], { type: "text/plain" });
-    let a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "Opening.mac";
-    a.click();
-}
-
-function reset() {
-    document.getElementById("px").value = 0;
-    document.getElementById("py").value = 0;
-    document.getElementById("pz").value = 0;
-    document.getElementById("dx").value = 0;
-    document.getElementById("dy").value = 0;
-    document.getElementById("dz").value = 0;
-    document.getElementById("r1").value = 150;
-    document.getElementById("r2").value = 150;
-    document.getElementById("r3").value = 150;
-    document.getElementById("r4").value = 150;
-    setOri('Z');
-}
-
-function help() {
-    window.open("https://drive.google.com/file/d/14NNDzXSCG63m1yQZb51tZhrZfd5k8KPf/view?usp=sharing");
-}
-
-// Hàm Library - mở thư viện
-function library() {
-    log("📚 Đang mở thư viện...");
-    alert("Chức năng Library đang được phát triển!");
-}
-
-document.querySelectorAll("input").forEach(i => {
-    i.addEventListener("input", draw);
-});
-
-window.addEventListener("resize", draw);
-draw();
+/* 4. CHỈNH SỬA CHUẨN ORI KHI XUẤT FILE .MAC THEO ĐÚNG HƯỚNG ĐƯỢC CHỌN
