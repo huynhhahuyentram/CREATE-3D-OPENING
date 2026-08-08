@@ -1,3 +1,24 @@
+/* ===== CSS VARIABLES ===== */
+:root {
+    --bg-primary: #0a1628;
+    --bg-secondary: #111d33;
+    --bg-card: #16233d;
+    --bg-input: #1a2a4a;
+    --border-color: #2a3f66;
+    --text-primary: #e8edf5;
+    --text-secondary: #8ba0c7;
+    --accent-blue: #1a8cff;
+    --accent-blue-hover: #3d9eff;
+    --accent-green: #00c853;
+    --accent-purple: #7c4dff;
+    --accent-orange: #ff6d00;
+    --accent-red: #ff1744;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== RESET & BASE ===== */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -5,106 +26,143 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #eef2f7;
-    font-size: 15px;
-    padding: 20px 0;
+    font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-image: 
+        radial-gradient(ellipse at 20% 50%, rgba(26, 140, 255, 0.05) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 50%, rgba(124, 77, 255, 0.05) 0%, transparent 60%);
 }
 
+/* ===== APP CONTAINER ===== */
 .app {
-    width: 960px;
-    margin: auto;
+    width: 1100px;
+    max-width: 100%;
+    margin: 0 auto;
 }
 
+/* ===== CANVAS 3D ===== */
 #view {
     width: 100%;
-    height: 280px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    height: 300px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
     display: block;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
 }
 
+#view:hover {
+    border-color: var(--accent-blue);
+}
+
+/* ===== PANEL ===== */
 .panel {
-    background: #ffffff;
-    padding: 24px;
-    margin-top: 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    background: var(--bg-card);
+    padding: 28px 30px;
+    margin-top: 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
 }
 
+/* ===== ROW LAYOUT ===== */
 .row {
     display: flex;
-    gap: 40px;
+    gap: 48px;
+    flex-wrap: wrap;
 }
 
 .box {
     flex: 1;
-    margin-bottom: 20px;
+    min-width: 200px;
+    margin-bottom: 16px;
 }
 
+/* ===== HEADINGS ===== */
 h3 {
-    font-size: 17px;
-    font-weight: 700;
-    color: #1a252f;
-    margin-bottom: 12px;
-    border-bottom: 2.5px solid #2d89ef;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 2px solid var(--accent-blue);
     display: inline-block;
-    padding-bottom: 4px;
+    padding-bottom: 6px;
 }
 
+/* ===== INPUT LIST ===== */
 .input-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .input-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
 }
 
 .input-item label {
-    font-weight: 600;
-    font-size: 15px;
-    color: #34495e;
-    width: 130px;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--text-secondary);
+    width: 80px;
+    letter-spacing: 0.3px;
 }
 
 .input-item input {
     flex: 1;
-    height: 38px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #2c3e50;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 0 12px;
+    height: 40px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: var(--bg-input);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0 14px;
     outline: none;
-    transition: all 0.2s ease-in-out;
+    transition: var(--transition);
+    font-family: 'Segoe UI', monospace;
 }
 
-/* SỬA LỖI 2: TẮT MŨI TÊN TĂNG GIẢM SỐ TRÊN MỌI TRÌNH DUYỆT (CHROME, SAFARI, EDGE, FIREFOX) */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-    -webkit-appearance: none !important; 
-    margin: 0 !important; 
+.input-item input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 4px rgba(26, 140, 255, 0.15);
+    background: #1e3055;
 }
 
+.input-item input:hover {
+    border-color: #3a5a8a;
+}
+
+/* ===== HIDE NUMBER SPINNER ===== */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
 input[type=number] {
     -moz-appearance: textfield !important;
     appearance: textfield !important;
 }
 
-.input-item input:focus {
-    border-color: #2d89ef;
-    box-shadow: 0 0 0 3px rgba(45, 137, 239, 0.15);
-}
-
+/* ===== CORNER RADIUS ===== */
 .radius {
     display: flex;
-    gap: 15px;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .radius label {
@@ -112,91 +170,304 @@ input[type=number] {
     flex-direction: column;
     align-items: center;
     flex: 1;
+    min-width: 60px;
     font-weight: 600;
-    font-size: 14px;
-    color: #34495e;
+    font-size: 12px;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .radius input {
     width: 100%;
-    height: 38px;
-    margin-top: 5px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #2c3e50;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 8px;
+    height: 40px;
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: var(--bg-input);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
     padding: 0 10px;
     outline: none;
+    transition: var(--transition);
+    text-align: center;
+    font-family: 'Segoe UI', monospace;
 }
 
+.radius input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 4px rgba(26, 140, 255, 0.15);
+    background: #1e3055;
+}
+
+/* ===== ORIENTATION ===== */
 .ori {
     display: flex;
     justify-content: flex-start;
-    gap: 15px;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .ori button {
-    width: 75px;
-    height: 38px;
-    border: none;
-    border-radius: 8px;
-    background: #e2e8f0;
-    font-weight: bold;
-    font-size: 15px;
-    color: #475569;
+    width: 72px;
+    height: 42px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-input);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: var(--transition);
+    font-family: 'Segoe UI', sans-serif;
+    letter-spacing: 0.5px;
 }
 
 .ori button:hover {
-    background: #cbd5e1;
+    background: #1e3055;
+    border-color: #3a5a8a;
+    transform: translateY(-1px);
 }
 
 .ori .active {
-    background: #2d89ef;
+    background: var(--accent-blue);
     color: #ffffff;
-    box-shadow: 0 2px 6px rgba(45, 137, 239, 0.3);
+    border-color: var(--accent-blue);
+    box-shadow: 0 4px 20px rgba(26, 140, 255, 0.35);
+    transform: translateY(-2px);
 }
 
+.ori .active:hover {
+    background: var(--accent-blue-hover);
+    box-shadow: 0 6px 28px rgba(26, 140, 255, 0.45);
+}
+
+/* ===== BUTTONS ===== */
 .btns {
     display: flex;
     gap: 12px;
     margin-top: 20px;
+    flex-wrap: wrap;
 }
 
 .btns button {
     flex: 1;
-    height: 44px;
+    min-width: 100px;
+    height: 46px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     color: #ffffff;
-    font-weight: bold;
-    font-size: 15px;
+    font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: var(--transition);
+    letter-spacing: 0.3px;
+    font-family: 'Segoe UI', sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+.btns button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    pointer-events: none;
 }
 
 .btns button:hover {
-    opacity: 0.92;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
-.ok { background: #2d89ef; }
-.voice { background: #8e44ad; }
-.help { background: #16a085; }
-.reset { background: #e74c3c; }
+.btns button:active {
+    transform: translateY(0px);
+}
 
+.ok {
+    background: linear-gradient(135deg, #1a8cff, #0066cc);
+}
+.ok:hover {
+    background: linear-gradient(135deg, #3d9eff, #1a8cff);
+}
+
+.voice {
+    background: linear-gradient(135deg, #7c4dff, #651fff);
+}
+.voice:hover {
+    background: linear-gradient(135deg, #9d6fff, #7c4dff);
+}
+
+.help {
+    background: linear-gradient(135deg, #00c853, #009624);
+}
+.help:hover {
+    background: linear-gradient(135deg, #00e676, #00c853);
+}
+
+.reset {
+    background: linear-gradient(135deg, #ff1744, #d50000);
+}
+.reset:hover {
+    background: linear-gradient(135deg, #ff5252, #ff1744);
+}
+
+/* ===== CHAT / LOG ===== */
 #chat {
-    height: 100px;
+    height: 110px;
     margin-top: 18px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 14px 16px;
     overflow-y: auto;
-    font-size: 14px;
-    color: #334155;
-} 
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-family: 'Segoe UI', monospace;
+    transition: var(--transition);
+}
 
+#chat:focus-within {
+    border-color: var(--accent-blue);
+}
 
+/* ===== CUSTOM SCROLLBAR ===== */
+#chat::-webkit-scrollbar {
+    width: 6px;
+}
+#chat::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+}
+#chat::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+#chat::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-blue);
+}
+
+#chat div {
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+#chat div:last-child {
+    border-bottom: none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    body {
+        padding: 12px;
+    }
+    
+    .panel {
+        padding: 18px 16px;
+    }
+    
+    .row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .box {
+        margin-bottom: 8px;
+    }
+    
+    .input-item label {
+        width: 60px;
+        font-size: 12px;
+    }
+    
+    .radius {
+        gap: 8px;
+    }
+    
+    .radius label {
+        min-width: 45px;
+        font-size: 10px;
+    }
+    
+    .btns button {
+        min-width: 70px;
+        font-size: 12px;
+        height: 40px;
+    }
+    
+    .ori button {
+        width: 60px;
+        height: 38px;
+        font-size: 14px;
+    }
+    
+    #view {
+        height: 200px;
+    }
+    
+    h3 {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .panel {
+        padding: 12px 10px;
+    }
+    
+    .btns {
+        flex-direction: column;
+    }
+    
+    .btns button {
+        min-width: 100%;
+    }
+    
+    .input-item {
+        flex-wrap: wrap;
+    }
+    
+    .input-item input {
+        width: 100%;
+        flex: none;
+    }
+    
+    .input-item label {
+        width: 100%;
+        margin-bottom: 2px;
+    }
+    
+    .radius {
+        flex-direction: column;
+    }
+    
+    #chat {
+        height: 80px;
+        font-size: 12px;
+    }
+}
+
+/* ===== ANIMATION ===== */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.voice.listening {
+    animation: pulse 1.2s ease-in-out infinite;
+    box-shadow: 0 0 30px rgba(124, 77, 255, 0.4);
+}
+
+/* ===== STATUS INDICATOR ===== */
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+.status-dot.green { background: var(--accent-green); }
+.status-dot.red { background: var(--accent-red); }
+.status-dot.blue { background: var(--accent-blue); }
