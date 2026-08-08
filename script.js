@@ -362,51 +362,34 @@ function voice() {
         let r = new SR();
         r.lang = "vi-VN";
         r.continuous = true;
-        r.interimResults = true; // Bật interim results để nhận diện nhanh hơn
-        r.maxAlternatives = 5; // Lấy nhiều lựa chọn thay thế
+        r.interimResults = true;
+        r.maxAlternatives = 5;
 
         let silenceTimer = null;
         let finalText = "";
-        let interimText = "";
 
         r.onresult = (e) => {
-            // Gom tất cả kết quả
             let final = "";
-            let interim = "";
             
             for (let i = e.resultIndex; i < e.results.length; i++) {
                 if (e.results[i].isFinal) {
                     final += e.results[i][0].transcript;
-                } else {
-                    interim += e.results[i][0].transcript;
                 }
             }
             
             if (final) {
                 finalText = final;
-                // Hiển thị interim nếu có
-                if (interim) {
-                    log("👤 " + final + " (đang nhận diện...)");
-                }
             }
             
-            // Reset timer khi có kết quả mới
             clearTimeout(silenceTimer);
             
-            // Nếu có kết quả cuối cùng, xử lý sau 1.5 giây im lặng
             if (finalText) {
                 silenceTimer = setTimeout(() => {
-                    r.stop();
+                    try {
+                        r.stop();
+                    } catch(e) {}
                     processFullVoiceNLP(finalText);
                 }, 1500);
-            } else {
-                // Nếu chỉ có interim, đợi lâu hơn
-                silenceTimer = setTimeout(() => {
-                    if (finalText) {
-                        r.stop();
-                        processFullVoiceNLP(finalText);
-                    }
-                }, 3000);
             }
         };
 
@@ -417,13 +400,18 @@ function voice() {
         };
 
         r.onend = () => {
-            // Nếu kết thúc mà vẫn có text thì xử lý
             if (finalText) {
                 processFullVoiceNLP(finalText);
             }
         };
 
-        r.start();
+        try {
+            r.start();
+        } catch(e) {
+            let errorMsg = "Không thể truy cập microphone!";
+            log("🤖 " + errorMsg);
+            speak(errorMsg);
+        }
     };
 
     window.speechSynthesis.speak(u);
@@ -432,7 +420,7 @@ function voice() {
 function processFullVoiceNLP(t) {
     log("👤 " + t);
 
-    // 1. CHUẨN HÓA VĂN BẢN - HỖ TRỢ NHIỀU CÁCH NÓI
+    // 1. CHUẨN HÓA VĂN BẢN
     let str = t.toLowerCase()
                .replace(/\b(âm|trừ|âm\s*)\b/g, "-")
                .replace(/\bphẩy\b/g, ",")
@@ -442,9 +430,8 @@ function processFullVoiceNLP(t) {
                .replace(/\b(khoảng|khoang|khoản|khoản g)\b/g, "")
                .replace(/\b(và|với|vơi)\b/g, " ");
 
-    // Xử lý số thập phân với dấu phẩy
     str = str.replace(/(\d+)\s*phẩy\s*(\d+)/g, '$1,$2');
-    str = str.replace(/(\d+)\.(\d+)/g, '$1$2'); // Loại bỏ dấu chấm hàng nghìn
+    str = str.replace(/(\d+)\.(\d+)/g, '$1$2');
 
     let updatedCount = 0;
     let detectedInfo = [];
@@ -452,13 +439,11 @@ function processFullVoiceNLP(t) {
     const cleanNumberString = (numStr) => {
         if (!numStr) return "0";
         numStr = numStr.trim().replace(/\s+/g, '');
-        // Giữ nguyên dấu phẩy cho parseFloat
         return numStr;
     };
 
     const findVal = (keywords) => {
         for (let kw of keywords) {
-            // Nhận diện số âm, số nguyên, số thập phân
             let regex = new RegExp(`${kw}(?:\\s*(?:là|bằng|:|\\s))?\\s*(-?\\s*\\d+(?:[.,]\\d+)?)`, "i");
             let match = str.match(regex);
             if (match) {
@@ -469,7 +454,6 @@ function processFullVoiceNLP(t) {
         return null;
     };
 
-    // Tìm tất cả số trong câu
     const findAllNumbers = () => {
         let nums = str.match(/-?\d+[.,]?\d*/g);
         if (nums) {
@@ -478,7 +462,7 @@ function processFullVoiceNLP(t) {
         return [];
     };
 
-    // 1. NHẬN DIỆN ORIENTATION - HỖ TRỢ NHIỀU CÁCH NÓI
+    // 1. NHẬN DIỆN ORIENTATION
     if (/(trục|hướng|ori)\s*(theo\s*trục\s*)?x\b/i.test(str) || 
         /\bx\b/i.test(str) && !/(trục|hướng|ori)\s*(theo\s*trục\s*)?(y|z)/i.test(str)) { 
         setOri('X'); 
@@ -508,17 +492,17 @@ function processFullVoiceNLP(t) {
     if (posX !== null) { 
         document.getElementById("px").value = posX; 
         updatedCount++; 
-        detectedInfo.push(`Position X: ${posX}mm`);
+        detectedInfo.push(`X: ${posX}mm`);
     }
     if (posY !== null) { 
         document.getElementById("py").value = posY; 
         updatedCount++; 
-        detectedInfo.push(`Position Y: ${posY}mm`);
+        detectedInfo.push(`Y: ${posY}mm`);
     }
     if (posZ !== null) { 
         document.getElementById("pz").value = posZ; 
         updatedCount++; 
-        detectedInfo.push(`Position Z: ${posZ}mm`);
+        detectedInfo.push(`Z: ${posZ}mm`);
     }
 
     // 3. NHẬN DIỆN DIMENSION (L, W, H)
@@ -619,16 +603,13 @@ function processFullVoiceNLP(t) {
         }
     }
 
-    // 7. PHẢN HỒI KẾT QUẢ
+    // 7. PHẢN HỒI KẾT QUẢ - CHỈ HIỂN THỊ 1 DÒNG DUY NHẤT
     if (updatedCount > 0) {
         draw();
-        // Hiển thị chi tiết những gì đã nhận diện được
-        let detailMsg = "✅ Đã nhận diện: " + detectedInfo.join(", ");
+        // GỘP THÀNH 1 DÒNG DUY NHẤT
+        let detailMsg = "✅ Đã nhận diện: " + detectedInfo.join(", ") + ". " + "File của bạn đã được tạo xong";
         log("🤖 " + detailMsg);
-        
-        let successMsg = "File của bạn đã được tạo xong";
-        log("🤖 " + successMsg);
-        speak(successMsg);
+        speak("File của bạn đã được tạo xong");
     } else {
         let failMsg = "Chưa nhận diện được thông số, vui lòng thử lại!";
         log("🤖 " + failMsg);
