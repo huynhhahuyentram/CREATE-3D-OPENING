@@ -84,6 +84,9 @@
 <!-- DOCUMENT LIBRARY MODAL -->
 <div id="libraryModal" class="modal-overlay">
     <div class="modal-content">
+        <!-- Input ẩn phục vụ cho tính năng Chỉnh sửa (Edit) -->
+        <input type="hidden" id="editingDocId" value="">
+
         <!-- Header -->
         <div class="modal-header">
             <h2>📚 Document Library</h2>
@@ -92,10 +95,9 @@
 
         <!-- Body -->
         <div class="modal-body">
-            <!-- Alert Status -->
+            <!-- Alert Status (Đã bỏ nút Refresh) -->
             <div class="status-alert">
-                <span>✅ Loaded <strong id="docCount">4</strong> documents</span>
-                <button class="btn btn-purple-sm" onclick="refreshDocs()">🔄 Refresh</button>
+                <span>✅ Loaded <strong id="docCount">0</strong> documents</span>
             </div>
 
             <!-- Search Bar Section -->
@@ -110,21 +112,31 @@
                 </div>
             </div>
 
-            <!-- Add Document Form -->
+            <!-- Add / Edit Document Form -->
             <div class="add-doc-form">
                 <input type="text" id="docNameInput" placeholder="Document name...">
                 <input type="text" id="docLinkInput" placeholder="Drive link...">
                 <input type="text" id="docTagsInput" placeholder="Tags (comma sep)...">
-                <button class="btn btn-purple" onclick="addDocument()">➕ Add</button>
+                <div class="form-btn-group">
+                    <button class="btn btn-purple" id="saveDocBtn" onclick="addDocument()">➕ Add</button>
+                    <button class="btn btn-cancel-edit" id="cancelEditBtn" onclick="cancelEdit()" style="display: none;">Cancel</button>
+                </div>
             </div>
 
-            <!-- Document List -->
-            <div class="doc-list" id="docList">
-                <!-- Javascript sẽ render danh sách ở đây -->
+            <!-- Document List Box -->
+            <div class="doc-list-wrapper">
+                <div class="doc-list" id="docList">
+                    <!-- Javascript sẽ render danh sách ở đây -->
+                </div>
+                
+                <!-- Footer của danh sách chứa nút Clear All -->
+                <div class="doc-list-footer">
+                    <button class="btn btn-delete-sm" onclick="clearAllDocs()">🗑️ Clear All</button>
+                </div>
             </div>
         </div>
 
-        <!-- Footer -->
+        <!-- Modal Footer -->
         <div class="modal-footer">
             <button class="btn-text-close" onclick="closeLibraryModal()">Close</button>
         </div>
