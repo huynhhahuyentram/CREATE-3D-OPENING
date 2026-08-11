@@ -483,3 +483,233 @@ input[type=number] {
 .status-dot.green { background: var(--accent-green); }
 .status-dot.red { background: var(--accent-red); }
 .status-dot.blue { background: var(--accent-blue); }
+
+
+
+
+/* MODAL OVERLAY */
+.modal-overlay {
+    display: none; /* Mặc định ẩn */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+/* MODAL CONTENT CONTAINER */
+.modal-content {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+    width: 620px;
+    max-width: 90%;
+    padding: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    color: #f8fafc;
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* HEADER */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #ffffff;
+}
+
+/* STATUS ALERT */
+.status-alert {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #34d399;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+/* SEARCH SECTION */
+.search-section {
+    margin-bottom: 16px;
+}
+
+.section-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+}
+
+.search-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.search-controls input {
+    flex: 1;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #fff;
+    outline: none;
+}
+
+.search-controls input:focus {
+    border-color: #6366f1;
+}
+
+.search-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ADD DOCUMENT FORM */
+.add-doc-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.add-doc-form input {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+}
+
+.add-doc-form input:focus {
+    border-color: #6366f1;
+}
+
+/* BUTTON STYLES */
+.btn {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-purple {
+    background: #6366f1;
+    color: #ffffff;
+}
+.btn-purple:hover { background: #4f46e5; }
+
+.btn-purple-sm {
+    background: #6366f1;
+    color: #ffffff;
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.btn-cyan {
+    background: #06b6d4;
+    color: #ffffff;
+}
+.btn-cyan:hover { background: #0891b2; }
+
+.btn-delete {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 8px 12px;
+}
+.btn-delete:hover {
+    background: #ef4444;
+    color: #fff;
+}
+
+/* DOCUMENT LIST */
+.doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.doc-item {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.doc-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #f1f5f9;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.doc-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* FOOTER */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.btn-text-close {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+}
+.btn-text-close:hover { color: #fff; }
