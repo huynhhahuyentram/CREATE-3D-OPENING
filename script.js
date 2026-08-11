@@ -598,7 +598,7 @@ function help() {
 
 
 
-// 1. Khai báo mảng chứa tài liệu và tham chiếu Firestore
+// 1. Khai báo mảng chứa tài liệu
 let documents = [];
 
 // Hàm lắng nghe dữ liệu thời gian thực (Realtime) từ Firebase
@@ -622,7 +622,66 @@ function initFirebaseListener() {
 // Gọi lắng nghe dữ liệu ngay khi tải trang
 initFirebaseListener();
 
-// 2. Thêm mới hoặc Cập nhật tài liệu lên Firebase
+// 2. Điều khiển Modal Library & Nút bấm
+function openLibraryModal() {
+    const modal = document.getElementById('libraryModal');
+    if (modal) modal.classList.add('active');
+    renderDocuments(documents);
+}
+
+function closeLibraryModal() {
+    const modal = document.getElementById('libraryModal');
+    if (modal) modal.classList.remove('active');
+    cancelEdit();
+}
+
+// Hàm gán cho nút Library trên toolbar
+function library() {
+    openLibraryModal();
+}
+
+// 3. Render danh sách tài liệu ra HTML
+function renderDocuments(list) {
+    const docListContainer = document.getElementById('docList');
+    const docCountEl = document.getElementById('docCount');
+    
+    if (docCountEl) docCountEl.innerText = list ? list.length : 0;
+    if (!docListContainer) return;
+
+    docListContainer.innerHTML = '';
+    
+    if (!list || list.length === 0) {
+        docListContainer.innerHTML = '<div class="doc-empty">Chưa có tài liệu nào trong thư viện.</div>';
+        return;
+    }
+
+    list.forEach(docItem => {
+        const item = document.createElement('div');
+        item.className = 'doc-item';
+        item.innerHTML = `
+            <div class="doc-info" title="${docItem.name}">
+                <span>📄</span>
+                <span><strong>${docItem.name}</strong></span>
+            </div>
+            <div class="doc-actions">
+                <button class="btn btn-purple" onclick="openDocLink('${docItem.link}')">📁 Open</button>
+                <button class="btn btn-amber" onclick="editDoc('${docItem.id}')">✏️ Edit</button>
+                <button class="btn btn-delete" onclick="deleteDoc('${docItem.id}')">✕</button>
+            </div>
+        `;
+        docListContainer.appendChild(item);
+    });
+}
+
+function openDocLink(url) {
+    if (!url || url === '#') {
+        alert('Đường dẫn không hợp lệ!');
+        return;
+    }
+    window.open(url, '_blank');
+}
+
+// 4. Thêm mới hoặc Cập nhật tài liệu lên Firebase
 async function addDocument() {
     const editingId = document.getElementById('editingDocId').value;
     const nameInput = document.getElementById('docNameInput');
@@ -655,7 +714,7 @@ async function addDocument() {
     }
 }
 
-// 3. Chỉnh sửa (Edit) tài liệu
+// 5. Chỉnh sửa (Edit) tài liệu
 function editDoc(id) {
     const docItem = documents.find(d => d.id === id);
     if (!docItem) return;
@@ -672,7 +731,7 @@ function editDoc(id) {
     document.getElementById('cancelEditBtn').style.display = 'inline-flex';
 }
 
-// 4. Hủy chế độ Edit
+// 6. Hủy chế độ Edit
 function cancelEdit() {
     document.getElementById('editingDocId').value = '';
     document.getElementById('docNameInput').value = '';
@@ -686,7 +745,7 @@ function cancelEdit() {
     document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
-// 5. Xóa 1 tài liệu trên Firebase
+// 7. Xóa 1 tài liệu trên Firebase
 async function deleteDoc(id) {
     if (confirm('Bạn có chắc muốn xóa tài liệu này?')) {
         try {
@@ -697,7 +756,7 @@ async function deleteDoc(id) {
     }
 }
 
-// 6. Xóa tất cả tài liệu
+// 8. Xóa tất cả tài liệu
 async function clearAllDocs() {
     if (documents.length === 0) {
         alert('Thư viện đang trống!');
@@ -712,7 +771,17 @@ async function clearAllDocs() {
     }
 }
 
-// Tìm kiếm bằng giọng nói (Giả lập)
+// 9. Lọc/Tìm kiếm tài liệu
+function filterDocs() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = documents.filter(docItem => 
+        (docItem.name && docItem.name.toLowerCase().includes(query)) || 
+        (docItem.tags && docItem.tags.some(tag => tag.toLowerCase().includes(query)))
+    );
+    renderDocuments(filtered);
+}
+
+// 10. Tìm kiếm bằng giọng nói (Giả lập)
 function startVoiceSearch() {
     alert("Đang lắng nghe... Hãy nói tên tài liệu!");
 }
