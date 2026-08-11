@@ -1,1 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Opening Tool Pro - Help</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a1628;
+            --bg-card: #16233d;
+            --bg-subcard: #111d33;
+            --border-color: #2a3f66;
+            --text-primary: #e8edf5;
+            --text-secondary: #8ba0c7;
+            --accent-blue: #1a8cff;
+            --accent-cyan: #00d2ff;
+            --accent-warning: #ff9100;
+            --warning-bg: rgba(255, 109, 0, 0.15);
+            --warning-border: #ff6d00;
+            --radius: 12px;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.6;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 900px;
+            max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin-top: 6px;
+        }
+
+        /* CARD STYLING */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 24px 28px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-blue);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* GRID SYSTEM */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .grid-1 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .sub-card {
+            background: var(--bg-subcard);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .sub-card h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sub-card p {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* VOICE COMMAND ITEM */
+        .voice-item {
+            background: var(--bg-subcard);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 6px;
+            padding: 12px 16px;
+        }
+
+        .voice-cmd {
+            font-family: 'Segoe UI', monospace;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .voice-desc {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* LIST STYLING */
+        .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .feature-list li {
+            position: relative;
+            padding-left: 18px;
+            color: var(--text-secondary);
+            font-size: 13.5px;
+        }
+
+        .feature-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+
+        /* WARNING BOX */
+        .warning-box {
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-top: 8px;
+        }
+
+        .warning-box ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .warning-box li {
+            position: relative;
+            padding-left: 18px;
+            color: #ffe0b2;
+            font-size: 13px;
+        }
+
+        .warning-box li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent-warning);
+            font-weight: bold;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>📖 User Guide</h1>
+            <p>3D Opening Tool Pro Documentation</p>
+        </div>
+
+        <!-- INTRODUCTION -->
+        <div class="card">
+            <div class="card-title">
+                <span>📖</span> Introduction
+            </div>
+            <p style="color: var(--text-secondary);">
+                3D Opening Tool Pro is a design tool used to create and export MAC files for architectural openings. The application provides real-time 3D visualization and precise dimensional control.
+            </p>
+        </div>
+
+        <!-- TECHNICAL SPECIFICATIONS -->
+        <div class="card">
+            <div class="card-title">
+                <span>📐</span> Technical Specifications
+            </div>
+            <div class="grid-3" style="margin-bottom: 16px;">
+                <div class="sub-card">
+                    <h4>📏 Dimension</h4>
+                    <p>Enter Length, Width and Thickness in millimeters. The 3D model updates automatically.</p>
+                </div>
+                <div class="sub-card">
+                    <h4>🔄 Orientation</h4>
+                    <p>Select X, Y or Z axis orientation.</p>
+                </div>
+                <div class="sub-card">
+                    <h4>⭕ Corner Radius</h4>
+                    <p>Configure R1, R2, R3 and R4 individually.</p>
+                </div>
+            </div>
+            <div class="grid-1">
+                <div class="sub-card" style="max-width: 32%;">
+                    <h4>📍 Position</h4>
+                    <p>Define X, Y and Z coordinates for placement.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VOICE COMMANDS -->
+        <div class="card">
+            <div class="card-title">
+                <span>🎤</span> Voice Commands
+            </div>
+            <div class="grid-1">
+                <div class="voice-item">
+                    <div class="voice-cmd">Length 2000, Width 1500, Thickness 300</div>
+                    <div class="voice-desc">Update dimensions</div>
+                </div>
+                <div class="voice-item">
+                    <div class="voice-cmd">Position X 100, Y 200, Z 50</div>
+                    <div class="voice-desc">Update location</div>
+                </div>
+                <div class="voice-item">
+                    <div class="voice-cmd">Corner Radius 200</div>
+                    <div class="voice-desc">Update corner radius</div>
+                </div>
+                <div class="voice-item">
+                    <div class="voice-cmd">Orientation X</div>
+                    <div class="voice-desc">Change orientation</div>
+                </div>
+                <div class="voice-item">
+                    <div class="voice-cmd">Search living room window</div>
+                    <div class="voice-desc">Search document library</div>
+                </div>
+                <div class="voice-item">
+                    <div class="voice-cmd">Open document main door</div>
+                    <div class="voice-desc">Open selected document</div>
+                </div>
+                <div class="voice-item">
+                    <div class="voice-cmd">Save file</div>
+                    <div class="voice-desc">Export MAC file</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DOCUMENT LIBRARY -->
+        <div class="card">
+            <div class="card-title">
+                <span>📚</span> Document Library
+            </div>
+            <ul class="feature-list">
+                <li>Add document name, link and tags.</li>
+                <li>Search by name or tags.</li>
+                <li>Open document directly from the library.</li>
+                <li>Delete unused documents.</li>
+            </ul>
+        </div>
+
+        <!-- EXPORT MAC FILE -->
+        <div class="card">
+            <div class="card-title">
+                <span>💾</span> Export MAC File
+            </div>
+            <ul class="feature-list">
+                <li>Manual export through the Export button.</li>
+                <li>Automatic export after completing parameters.</li>
+                <li>Voice export using "Save file".</li>
+            </ul>
+        </div>
+
+        <!-- IMPORTANT NOTES -->
+        <div class="card">
+            <div class="card-title">
+                <span>⚠️</span> Important Notes
+            </div>
+            <div class="warning-box">
+                <ul>
+                    <li>Measurement unit: mm</li>
+                    <li>Microphone permission required for voice control.</li>
+                    <li>Exported file format: .mac</li>
+                    <li>Supports English and Vietnamese voice commands.</li>
+                    <li>Library data can be synchronized with Google Sheets.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
