@@ -661,7 +661,7 @@ function renderDocuments(list) {
         item.innerHTML = `
             <div class="doc-info" title="${docItem.name}">
                 <span>📄</span>
-                <span><strong>${docItem.name}</strong></span>
+                <span>${docItem.name}</span>
             </div>
             <div class="doc-actions">
                 <button class="btn btn-purple" onclick="openDocLink('${docItem.link}')">📁 Open</button>
@@ -756,22 +756,7 @@ async function deleteDoc(id) {
     }
 }
 
-// 8. Xóa tất cả tài liệu
-async function clearAllDocs() {
-    if (documents.length === 0) {
-        alert('Thư viện đang trống!');
-        return;
-    }
-    
-    if (confirm('Bạn có chắc chắn muốn xóa tất cả tài liệu không?')) {
-        for (let item of documents) {
-            await window.fs.deleteDoc(window.fs.doc(window.db, "documents", item.id));
-        }
-        cancelEdit();
-    }
-}
-
-// 9. Lọc/Tìm kiếm tài liệu
+// 8. Lọc/Tìm kiếm tài liệu
 function filterDocs() {
     const query = document.getElementById('searchInput').value.toLowerCase();
     const filtered = documents.filter(docItem => 
@@ -781,12 +766,7 @@ function filterDocs() {
     renderDocuments(filtered);
 }
 
-// 10. Tìm kiếm bằng giọng nói (Giả lập)
-function startVoiceSearch() {
-    alert("Đang lắng nghe... Hãy nói tên tài liệu!");
-}
-
-// Tìm kiếm bằng giọng nói (Giả lập)
+// 9. Tìm kiếm bằng giọng nói (Giả lập)
 function startVoiceSearch() {
     alert("Đang lắng nghe... Hãy nói tên tài liệu!");
 }
