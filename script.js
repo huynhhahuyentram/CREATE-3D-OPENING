@@ -599,64 +599,32 @@ function help() {
 
 
 
-// 1. Khởi tạo mảng trống (Ban đầu chưa có tài liệu nào)
-// Tự động tải dữ liệu lưu trữ từ LocalStorage nếu có
-let documents = JSON.parse(localStorage.getItem('shared_documents')) || [];
+// 1. Khai báo mảng chứa tài liệu và tham chiếu Firestore
+let documents = [];
 
-// Mở và đóng Modal
-function openLibraryModal() {
-    document.getElementById('libraryModal').classList.add('active');
-    renderDocuments(documents);
-}
-
-function closeLibraryModal() {
-    document.getElementById('libraryModal').classList.remove('active');
-    cancelEdit();
-}
-
-// Render danh sách tài liệu
-function renderDocuments(list) {
-    const docListContainer = document.getElementById('docList');
-    document.getElementById('docCount').innerText = list ? list.length : 0;
-    
-    if (!docListContainer) return;
-    docListContainer.innerHTML = '';
-
-    // Khi chưa có tài liệu
-    if (!list || list.length === 0) {
-        docListContainer.innerHTML = '<div class="doc-empty">Chưa có tài liệu nào trong thư viện.</div>';
+// Hàm lắng nghe dữ liệu thời gian thực (Realtime) từ Firebase
+function initFirebaseListener() {
+    if (!window.db) {
+        setTimeout(initFirebaseListener, 200); // Chờ Firebase khởi tạo xong
         return;
     }
-
-    list.forEach(doc => {
-        const item = document.createElement('div');
-        item.className = 'doc-item';
-        item.innerHTML = `
-            <div class="doc-info" title="${doc.name}">
-                <span>📄</span>
-                <span>${doc.name}</span>
-            </div>
-            <div class="doc-actions">
-                <button class="btn btn-purple" onclick="openDocLink('${doc.link}')">📁 Open</button>
-                <button class="btn btn-amber" onclick="editDoc(${doc.id})">✏️ Edit</button>
-                <button class="btn btn-delete" onclick="deleteDoc(${doc.id})">✕</button>
-            </div>
-        `;
-        docListContainer.appendChild(item);
+    const docsRef = window.fs.collection(window.db, "documents");
+    
+    // Khi dữ liệu trên Firebase thay đổi, giao diện tự động cập nhật
+    window.fs.onSnapshot(docsRef, (snapshot) => {
+        documents = [];
+        snapshot.forEach((doc) => {
+            documents.push({ id: doc.id, ...doc.data() });
+        });
+        renderDocuments(documents);
     });
 }
 
-// Mở link tài liệu
-function openDocLink(url) {
-    if (!url || url === '#') {
-        alert('Đường dẫn không hợp lệ!');
-        return;
-    }
-    window.open(url, '_blank');
-}
+// Gọi lắng nghe dữ liệu ngay khi tải trang
+initFirebaseListener();
 
-// Thêm mới hoặc Cập nhật tài liệu
-function addDocument() {
+// 2. Thêm mới hoặc Cập nhật tài liệu lên Firebase
+async function addDocument() {
     const editingId = document.getElementById('editingDocId').value;
     const nameInput = document.getElementById('docNameInput');
     const linkInput = document.getElementById('docLinkInput');
@@ -671,41 +639,33 @@ function addDocument() {
         return;
     }
 
-    if (editingId) {
-        // Cập nhật tài liệu cũ
-        const index = documents.findIndex(d => d.id == editingId);
-        if (index !== -1) {
-            documents[index].name = name;
-            documents[index].link = link;
-            documents[index].tags = tags;
+    try {
+        if (editingId) {
+            // Cập nhật tài liệu cũ trên Firebase
+            const docRef = window.fs.doc(window.db, "documents", editingId);
+            await window.fs.updateDoc(docRef, { name, link, tags });
+        } else {
+            // Thêm tài liệu mới lên Firebase
+            const docsRef = window.fs.collection(window.db, "documents");
+            await window.fs.addDoc(docsRef, { name, link, tags });
         }
-    } else {
-        // Thêm tài liệu mới vào mảng dùng chung
-        const newDoc = {
-            id: Date.now(),
-            name: name,
-            link: link,
-            tags: tags
-        };
-        documents.push(newDoc);
+        cancelEdit();
+    } catch (error) {
+        console.error("Lỗi khi lưu Firebase:", error);
+        alert("Lỗi khi lưu dữ liệu!");
     }
-
-    saveAndRefresh();
-    cancelEdit();
 }
 
-// Chỉnh sửa (Edit) tài liệu
+// 3. Chỉnh sửa (Edit) tài liệu
 function editDoc(id) {
-    const doc = documents.find(d => d.id === id);
-    if (!doc) return;
+    const docItem = documents.find(d => d.id === id);
+    if (!docItem) return;
 
-    // Đưa dữ liệu lên form
-    document.getElementById('editingDocId').value = doc.id;
-    document.getElementById('docNameInput').value = doc.name;
-    document.getElementById('docLinkInput').value = doc.link;
-    document.getElementById('docTagsInput').value = doc.tags ? doc.tags.join(', ') : '';
+    document.getElementById('editingDocId').value = docItem.id;
+    document.getElementById('docNameInput').value = docItem.name;
+    document.getElementById('docLinkInput').value = docItem.link;
+    document.getElementById('docTagsInput').value = docItem.tags ? docItem.tags.join(', ') : '';
 
-    // Đổi nút "➕ Add" thành "💾 Save" và hiện nút Cancel
     const saveBtn = document.getElementById('saveDocBtn');
     saveBtn.innerText = '💾 Save';
     saveBtn.className = 'btn btn-amber';
@@ -713,7 +673,7 @@ function editDoc(id) {
     document.getElementById('cancelEditBtn').style.display = 'inline-flex';
 }
 
-// Hủy chế độ Edit
+// 4. Hủy chế độ Edit
 function cancelEdit() {
     document.getElementById('editingDocId').value = '';
     document.getElementById('docNameInput').value = '';
@@ -727,40 +687,30 @@ function cancelEdit() {
     document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
-// Xóa 1 tài liệu
-function deleteDoc(id) {
-    documents = documents.filter(doc => doc.id !== id);
-    saveAndRefresh();
+// 5. Xóa 1 tài liệu trên Firebase
+async function deleteDoc(id) {
+    if (confirm('Bạn có chắc muốn xóa tài liệu này?')) {
+        try {
+            await window.fs.deleteDoc(window.fs.doc(window.db, "documents", id));
+        } catch (error) {
+            console.error("Lỗi xóa:", error);
+        }
+    }
 }
 
-// Xóa tất cả tài liệu (Clear All)
-function clearAllDocs() {
+// 6. Xóa tất cả tài liệu
+async function clearAllDocs() {
     if (documents.length === 0) {
         alert('Thư viện đang trống!');
         return;
     }
     
-    if (confirm('Bạn có chắc chắn muốn xóa tất cả tài liệu trong thư viện không?')) {
-        documents = [];
-        saveAndRefresh();
+    if (confirm('Bạn có chắc chắn muốn xóa tất cả tài liệu không?')) {
+        for (let item of documents) {
+            await window.fs.deleteDoc(window.fs.doc(window.db, "documents", item.id));
+        }
         cancelEdit();
     }
-}
-
-// Tìm kiếm tài liệu
-function filterDocs() {
-    const query = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = documents.filter(doc => 
-        (doc.name && doc.name.toLowerCase().includes(query)) || 
-        (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(query)))
-    );
-    renderDocuments(filtered);
-}
-
-// Lưu dữ liệu vào LocalStorage và Render lại UI
-function saveAndRefresh() {
-    localStorage.setItem('shared_documents', JSON.stringify(documents));
-    renderDocuments(documents);
 }
 
 // Tìm kiếm bằng giọng nói (Giả lập)
