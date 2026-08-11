@@ -506,13 +506,13 @@ input[type=number] {
     display: flex;
 }
 
-/* MODAL CONTENT CONTAINER */
+/* MODAL CONTENT CONTAINER (Tăng kích thước to hơn) */
 .modal-content {
     background: #0f172a;
     border: 1px solid #1e293b;
     border-radius: 16px;
-    width: 620px;
-    max-width: 90%;
+    width: 750px; /* Tăng từ 620px lên 750px cho thoải mái */
+    max-width: 92%;
     padding: 24px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
     color: #f8fafc;
@@ -597,12 +597,13 @@ input[type=number] {
     gap: 8px;
 }
 
-/* ADD DOCUMENT FORM */
+/* ADD / EDIT DOCUMENT FORM */
 .add-doc-form {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr auto;
     gap: 8px;
     margin-bottom: 20px;
+    align-items: center;
 }
 
 .add-doc-form input {
@@ -619,6 +620,11 @@ input[type=number] {
     border-color: #6366f1;
 }
 
+.form-btn-group {
+    display: flex;
+    gap: 6px;
+}
+
 /* BUTTON STYLES */
 .btn {
     border: none;
@@ -629,8 +635,10 @@ input[type=number] {
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .btn-purple {
@@ -639,12 +647,11 @@ input[type=number] {
 }
 .btn-purple:hover { background: #4f46e5; }
 
-.btn-purple-sm {
-    background: #6366f1;
+.btn-amber {
+    background: #f59e0b;
     color: #ffffff;
-    padding: 6px 12px;
-    font-size: 12px;
 }
+.btn-amber:hover { background: #d97706; }
 
 .btn-cyan {
     background: #06b6d4;
@@ -663,21 +670,56 @@ input[type=number] {
     color: #fff;
 }
 
-/* DOCUMENT LIST */
+.btn-delete-sm {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-delete-sm:hover {
+    background: #ef4444;
+    color: #fff;
+}
+
+.btn-cancel-edit {
+    background: #475569;
+    color: #fff;
+}
+.btn-cancel-edit:hover { background: #334155; }
+
+/* DOCUMENT LIST WRAPPER */
+.doc-list-wrapper {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px;
+}
+
 .doc-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-height: 260px;
+    max-height: 240px;
     overflow-y: auto;
     padding-right: 4px;
 }
 
+.doc-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 30px 0;
+    font-size: 14px;
+}
+
 .doc-item {
-    background: rgba(30, 41, 59, 0.5);
+    background: rgba(30, 41, 59, 0.7);
     border: 1px solid #1e293b;
     border-radius: 8px;
-    padding: 10px 14px;
+    padding: 8px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -690,11 +732,22 @@ input[type=number] {
     color: #f1f5f9;
     font-weight: 600;
     font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .doc-actions {
     display: flex;
     gap: 8px;
+}
+
+.doc-list-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #1e293b;
 }
 
 /* FOOTER */
