@@ -94,9 +94,10 @@
 
         <!-- Body -->
         <div class="modal-body">
-            <!-- Alert Status (Đã bỏ nút Refresh) -->
+            <!-- Alert Status -->
             <div class="status-alert">
-                <span>✅ Loaded <strong id="docCount">0</strong> documents</span>
+                <span>✅ Loaded <strong id="docCount">4</strong> documents</span>
+                <button class="btn btn-purple-sm" onclick="refreshDocs()">🔄 Refresh</button>
             </div>
 
             <!-- Search Bar Section -->
@@ -111,18 +112,12 @@
                 </div>
             </div>
 
-            <!-- Add / Edit Document Form (Giao diện mới vừa vặn bên trong) -->
+            <!-- Add Document Form -->
             <div class="add-doc-form">
-                <input type="hidden" id="editingDocId" value="">
-                <div class="form-inputs">
-                    <input type="text" id="docNameInput" placeholder="Document name...">
-                    <input type="text" id="docLinkInput" placeholder="Drive link...">
-                    <input type="text" id="docTagsInput" placeholder="Tags (comma sep)...">
-                </div>
-                <div class="form-action">
-                    <button class="btn btn-purple btn-add" id="saveDocBtn" onclick="saveDocument()">➕ Add</button>
-                    <button class="btn btn-cancel" id="cancelEditBtn" onclick="cancelEdit()" style="display: none;">Cancel</button>
-                </div>
+                <input type="text" id="docNameInput" placeholder="Document name...">
+                <input type="text" id="docLinkInput" placeholder="Drive link...">
+                <input type="text" id="docTagsInput" placeholder="Tags (comma sep)...">
+                <button class="btn btn-purple" onclick="addDocument()">➕ Add</button>
             </div>
 
             <!-- Document List -->
@@ -131,9 +126,8 @@
             </div>
         </div>
 
-        <!-- Footer (Thêm nút Clear All) -->
+        <!-- Footer -->
         <div class="modal-footer">
-            <button class="btn btn-danger-sm" onclick="clearAllDocs()">🗑️ Clear All</button>
             <button class="btn-text-close" onclick="closeLibraryModal()">Close</button>
         </div>
     </div>
