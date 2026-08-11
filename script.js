@@ -579,8 +579,7 @@ function reset() {
 
 
 function library() {
-    log("📚 Đang mở thư viện...");
-    alert("Chức năng Library đang được phát triển!");
+    openLibraryModal();
 }
 
 document.querySelectorAll("input").forEach(i => {
