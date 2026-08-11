@@ -599,27 +599,38 @@ function help() {
 
 
 
-// Khởi tạo danh sách tài liệu trống ban đầu
+// 1. Alias bắt buộc để không bị văng lỗi khi gọi từ Voice/NLP
+function library() {
+    openLibraryModal();
+}
+
+// Khởi tạo danh sách tài liệu
 let documents = [];
 
-// Mở và đóng Modal
+// Mở và đóng Modal (Đã thêm kiểm tra NULL an toàn)
 function openLibraryModal() {
-    document.getElementById('libraryModal').classList.add('active');
+    const modal = document.getElementById('libraryModal');
+    if (modal) modal.classList.add('active');
     renderDocuments(documents);
 }
 
 function closeLibraryModal() {
-    document.getElementById('libraryModal').classList.remove('active');
+    const modal = document.getElementById('libraryModal');
+    if (modal) modal.classList.remove('active');
     cancelEdit();
 }
 
 // Render danh sách tài liệu
 function renderDocuments(list) {
     const docListContainer = document.getElementById('docList');
-    document.getElementById('docCount').innerText = list.length;
+    const docCountEl = document.getElementById('docCount');
+
+    if (docCountEl) docCountEl.innerText = list ? list.length : 0;
+    if (!docListContainer) return;
+
     docListContainer.innerHTML = '';
 
-    if (list.length === 0) {
+    if (!list || list.length === 0) {
         docListContainer.innerHTML = '<div style="text-align:center; color:#64748b; padding:20px;">Chưa có tài liệu nào</div>';
         return;
     }
@@ -628,12 +639,12 @@ function renderDocuments(list) {
         const item = document.createElement('div');
         item.className = 'doc-item';
         item.innerHTML = `
-            <div class="doc-info" title="${doc.name}">
+            <div class="doc-info" title="${doc.name || ''}">
                 <span>📄</span>
-                <span class="doc-name">${doc.name}</span>
+                <span class="doc-name">${doc.name || ''}</span>
             </div>
             <div class="doc-actions">
-                <button class="btn btn-purple" onclick="openDocLink('${doc.link}')">📁 Open</button>
+                <button class="btn btn-purple" onclick="openDocLink('${doc.link || '#'}')">📁 Open</button>
                 <button class="btn btn-amber" onclick="editDoc(${doc.id})">✏️ Edit</button>
                 <button class="btn btn-delete" onclick="deleteDoc(${doc.id})">✕</button>
             </div>
@@ -644,15 +655,22 @@ function renderDocuments(list) {
 
 // Mở link tài liệu
 function openDocLink(url) {
-    window.open(url, '_blank');
+    if (url && url !== '#') window.open(url, '_blank');
 }
 
 // Thêm hoặc Lưu chỉnh sửa tài liệu
 function saveDocument() {
-    const editId = document.getElementById('editingDocId').value;
-    const name = document.getElementById('docNameInput').value.trim();
-    const link = document.getElementById('docLinkInput').value.trim();
-    const tagsInput = document.getElementById('docTagsInput').value.trim();
+    const editIdEl = document.getElementById('editingDocId');
+    const nameEl = document.getElementById('docNameInput');
+    const linkEl = document.getElementById('docLinkInput');
+    const tagsEl = document.getElementById('docTagsInput');
+
+    if (!nameEl || !linkEl) return;
+
+    const editId = editIdEl ? editIdEl.value : '';
+    const name = nameEl.value.trim();
+    const link = linkEl.value.trim();
+    const tagsInput = tagsEl ? tagsEl.value.trim() : '';
     const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()) : [];
 
     if (!name || !link) {
@@ -661,7 +679,6 @@ function saveDocument() {
     }
 
     if (editId) {
-        // Cập nhật tài liệu cũ (Edit)
         const index = documents.findIndex(doc => doc.id == editId);
         if (index !== -1) {
             documents[index].name = name;
@@ -669,7 +686,6 @@ function saveDocument() {
             documents[index].tags = tags;
         }
     } else {
-        // Thêm tài liệu mới (Add)
         const newDoc = {
             id: Date.now(),
             name: name,
@@ -683,37 +699,42 @@ function saveDocument() {
     renderDocuments(documents);
 }
 
-// Chọn tài liệu để chỉnh sửa (Edit)
+// Chọn tài liệu để chỉnh sửa
 function editDoc(id) {
     const doc = documents.find(d => d.id === id);
     if (!doc) return;
 
-    document.getElementById('editingDocId').value = doc.id;
-    document.getElementById('docNameInput').value = doc.name;
-    document.getElementById('docLinkInput').value = doc.link;
-    document.getElementById('docTagsInput').value = doc.tags ? doc.tags.join(', ') : '';
+    if (document.getElementById('editingDocId')) document.getElementById('editingDocId').value = doc.id;
+    if (document.getElementById('docNameInput')) document.getElementById('docNameInput').value = doc.name;
+    if (document.getElementById('docLinkInput')) document.getElementById('docLinkInput').value = doc.link;
+    if (document.getElementById('docTagsInput')) document.getElementById('docTagsInput').value = doc.tags ? doc.tags.join(', ') : '';
 
     const saveBtn = document.getElementById('saveDocBtn');
-    saveBtn.innerText = '💾 Update';
-    saveBtn.className = 'btn btn-amber btn-add';
-    document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+    if (saveBtn) {
+        saveBtn.innerText = '💾 Update';
+        saveBtn.className = 'btn btn-amber btn-add';
+    }
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if (cancelBtn) cancelBtn.style.display = 'inline-flex';
 }
 
-// Hủy chế độ sửa
 function cancelEdit() {
     resetForm();
 }
 
 function resetForm() {
-    document.getElementById('editingDocId').value = '';
-    document.getElementById('docNameInput').value = '';
-    document.getElementById('docLinkInput').value = '';
-    document.getElementById('docTagsInput').value = '';
+    if (document.getElementById('editingDocId')) document.getElementById('editingDocId').value = '';
+    if (document.getElementById('docNameInput')) document.getElementById('docNameInput').value = '';
+    if (document.getElementById('docLinkInput')) document.getElementById('docLinkInput').value = '';
+    if (document.getElementById('docTagsInput')) document.getElementById('docTagsInput').value = '';
 
     const saveBtn = document.getElementById('saveDocBtn');
-    saveBtn.innerText = '➕ Add';
-    saveBtn.className = 'btn btn-purple btn-add';
-    document.getElementById('cancelEditBtn').style.display = 'none';
+    if (saveBtn) {
+        saveBtn.innerText = '➕ Add';
+        saveBtn.className = 'btn btn-purple btn-add';
+    }
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
 // Xóa 1 tài liệu
@@ -722,7 +743,7 @@ function deleteDoc(id) {
     renderDocuments(documents);
 }
 
-// Xóa tất cả tài liệu (Clear All)
+// Xóa tất cả tài liệu
 function clearAllDocs() {
     if (documents.length === 0) return;
     if (confirm('Bạn có chắc chắn muốn xóa tất cả tài liệu không?')) {
@@ -732,17 +753,18 @@ function clearAllDocs() {
     }
 }
 
-// Tìm kiếm tài liệu
+// Tìm kiếm tài liệu (An toàn với undefined/null)
 function filterDocs() {
-    const query = document.getElementById('searchInput').value.toLowerCase();
+    const searchEl = document.getElementById('searchInput');
+    if (!searchEl) return;
+    const query = searchEl.value.toLowerCase();
     const filtered = documents.filter(doc => 
-        doc.name.toLowerCase().includes(query) || 
-        doc.tags.some(tag => tag.toLowerCase().includes(query))
+        (doc.name && doc.name.toLowerCase().includes(query)) || 
+        (Array.isArray(doc.tags) && doc.tags.some(tag => tag.toLowerCase().includes(query)))
     );
     renderDocuments(filtered);
 }
 
-// Tìm kiếm giọng nói (Giả lập)
 function startVoiceSearch() {
     alert("Đang lắng nghe... Hãy nói tên tài liệu!");
 }
