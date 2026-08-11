@@ -144,5 +144,31 @@
 </div>
 
 <script src="script.js"></script>
+    <!-- Khai báo các thư viện Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { 
+    getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc 
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+  // Cấu hình Firebase từ ảnh của bạn
+  const firebaseConfig = {
+    apiKey: "AIzaSyAbbPaSakecB3z-dqQ3FfhS6prHKICCFeA",
+    authDomain: "d-opening-tool.firebaseapp.com",
+    projectId: "d-opening-tool",
+    storageBucket: "d-opening-tool.firebasestorage.app",
+    messagingSenderId: "242030973735",
+    appId: "1:242030973735:web:d48715738f5709963e4f02",
+    measurementId: "G-M384KGE56Z"
+  };
+
+  // Khởi tạo Firebase & Firestore
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Đưa biến db và các hàm tương tác Firebase ra tầm vực toàn cục (window)
+  window.db = db;
+  window.fs = { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc };
+</script>
 </body>
 </html>
