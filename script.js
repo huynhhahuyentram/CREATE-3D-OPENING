@@ -593,3 +593,104 @@ draw();
 function help() {
     window.open('help.html', '_blank');
 }
+
+// LIBRARY/////
+// Dữ liệu mẫu ban đầu
+let documents = [
+    { id: 1, name: "Phần mềm tạo Opening", link: "https://drive.google.com", tags: ["tool", "opening"] },
+    { id: 2, name: "Phương pháp boarding Retractable", link: "https://drive.google.com", tags: ["boarding", "method"] },
+    { id: 3, name: "IACS Rec.47", link: "https://drive.google.com", tags: ["standard", "iacs"] },
+    { id: 4, name: "Phương pháp boarding Wet Unit", link: "https://drive.google.com", tags: ["boarding", "wet unit"] }
+];
+
+// Mở và đóng Modal
+function openLibraryModal() {
+    document.getElementById('libraryModal').classList.add('active');
+    renderDocuments(documents);
+}
+
+function closeLibraryModal() {
+    document.getElementById('libraryModal').classList.remove('active');
+}
+
+// Render danh sách tài liệu
+function renderDocuments(list) {
+    const docListContainer = document.getElementById('docList');
+    document.getElementById('docCount').innerText = list.length;
+    docListContainer.innerHTML = '';
+
+    list.forEach(doc => {
+        const item = document.createElement('div');
+        item.className = 'doc-item';
+        item.innerHTML = `
+            <div class="doc-info">
+                <span>📄</span>
+                <span>${doc.name}</span>
+            </div>
+            <div class="doc-actions">
+                <button class="btn btn-purple" onclick="openDocLink('${doc.link}')">📁 Open</button>
+                <button class="btn btn-delete" onclick="deleteDoc(${doc.id})">✕</button>
+            </div>
+        `;
+        docListContainer.appendChild(item);
+    });
+}
+
+// Mở link tài liệu
+function openDocLink(url) {
+    window.open(url, '_blank');
+}
+
+// Thêm tài liệu mới
+function addDocument() {
+    const name = document.getElementById('docNameInput').value.trim();
+    const link = document.getElementById('docLinkInput').value.trim();
+    const tags = document.getElementById('docTagsInput').value.split(',').map(t => t.trim());
+
+    if (!name || !link) {
+        alert('Vui lòng nhập tên tài liệu và link!');
+        return;
+    }
+
+    const newDoc = {
+        id: Date.now(),
+        name: name,
+        link: link,
+        tags: tags
+    };
+
+    documents.push(newDoc);
+    renderDocuments(documents);
+
+    // Reset input
+    document.getElementById('docNameInput').value = '';
+    document.getElementById('docLinkInput').value = '';
+    document.getElementById('docTagsInput').value = '';
+}
+
+// Xóa tài liệu
+function deleteDoc(id) {
+    documents = documents.filter(doc => doc.id !== id);
+    renderDocuments(documents);
+}
+
+// Tìm kiếm tài liệu
+function filterDocs() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = documents.filter(doc => 
+        doc.name.toLowerCase().includes(query) || 
+        doc.tags.some(tag => tag.toLowerCase().includes(query))
+    );
+    renderDocuments(filtered);
+}
+
+// Làm mới danh sách
+function refreshDocs() {
+    document.getElementById('searchInput').value = '';
+    renderDocuments(documents);
+}
+
+// Tìm kiếm bằng giọng nói (Giả lập)
+function startVoiceSearch() {
+    alert("Đang lắng nghe... Hãy nói tên tài liệu!");
+}
