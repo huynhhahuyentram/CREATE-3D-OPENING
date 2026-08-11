@@ -401,31 +401,19 @@ function processFullVoiceNLP(t) {
         return null;
     };
 
-    // 3. NHẬN DIỆN LỆNH NÚT BẤM (ĐA DẠNG TIẾNG ANH & TIẾNG VIỆT)
-    if (/(xuất mac|xuất file|xuat file|xuất tệp|xuat tep|lưu file|luu file|tải file|tai file|tạo file|tao file|tải về|tai ve|export|save|download)/i.test(str)) {
-        let msg = "Đã xuất file";
-        log("🤖 " + msg);
-        speak(msg);
+    // 3. NHẬN DIỆN LỆNH NÚT BẤM BÊN DƯỚI
+    if (/(xuất mac|export|tải file|tạo file|lưu file|ok)/i.test(str)) {
         saveFile();
-        return;
-    } else if (/(đặt lại|dat lai|reset|làm mới|lam moi|xóa hết|xoa het|xóa dữ liệu|xoa du lieu|xóa số liệu|xoa so lieu|nhập lại|nhap lai|clear|restart)/i.test(str)) {
-        let msg = "Đã Reset số liệu";
-        log("🤖 " + msg);
-        speak(msg);
-        reset();
-        return;
-    } else if (/(thư viện|thu vien|mở thư viện|mo thu vien|vào thư viện|vao thu vien|danh mục|danh muc|library|open library)/i.test(str)) {
-        let msg = "Đã truy cập thư viện";
-        log("🤖 " + msg);
-        speak(msg);
-        library();
-        return;
-    } else if (/(trợ giúp|tro giup|hướng dẫn|huong dan|giúp đỡ|giup do|xem hướng dẫn|xem huong dan|help|guide|instruction|support)/i.test(str)) {
-        let msg = "Đã truy cập hướng dẫn";
-        log("🤖 " + msg);
-        speak(msg);
+        updatedCount++;
+    } else if (/(trợ giúp|hướng dẫn|help)/i.test(str)) {
         help();
-        return;
+        updatedCount++;
+    } else if (/(thư viện|library)/i.test(str)) {
+        library();
+        updatedCount++;
+    } else if (/(đặt lại|reset|làm mới|xóa hết)/i.test(str)) {
+        reset();
+        updatedCount++;
     }
 
     // 4. NHẬN DIỆN ORIENTATION
@@ -483,7 +471,7 @@ function processFullVoiceNLP(t) {
         }
     }
 
-    // PHẢN HỒI LẠI TRÊN MÀN HÌNH VÀ PHÁT ÂM
+    // PHẢN HỒI LẠI TRÊN BÀN HÌNH VÀ PHÁT ÂM
     if (updatedCount > 0) {
         draw();
         let successMsg = "File của bạn đã được tạo xong";
