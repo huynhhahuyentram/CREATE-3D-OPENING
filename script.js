@@ -592,3 +592,7 @@ document.querySelectorAll("input").forEach(i => {
 
 window.addEventListener("resize", draw);
 draw();
+
+function help() {
+    window.open('help.html', '_blank');
+}
