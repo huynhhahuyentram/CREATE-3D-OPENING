@@ -577,9 +577,6 @@ function reset() {
     setOri('Z');
 }
 
-function help() {
-    window.open("https://drive.google.com/file/d/14NNDzXSCG63m1yQZb51tZhrZfd5k8KPf/view?usp=sharing");
-}
 
 function library() {
     log("📚 Đang mở thư viện...");
