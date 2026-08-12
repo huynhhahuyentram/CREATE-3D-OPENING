@@ -3,274 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Modeling & Library System</title>
-    <link rel="stylesheet" href="style.css">
-    
-    <!-- Firebase SDK (Modular CDN) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-            getFirestore, 
-            collection, 
-            onSnapshot, 
-            addDoc, 
-            doc, 
-            updateDoc, 
-            deleteDoc 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // Cấu hình Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDummyKeyForTemplateCheck",
-            authDomain: "your-app.firebaseapp.com",
-            projectId: "your-app-id",
-            storageBucket: "your-app.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef"
-        };
-
-        // Khởi tạo Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Gắn biến vào global window để script.js truy cập
-        window.db = db;
-        window.fs = {
-            collection,
-            onSnapshot,
-            addDoc,
-            doc,
-            updateDoc,
-            deleteDoc
-        };
-    </script>
+    <title>Thư Viện Kỹ Thuật & Công Cụ 3D</title>
 </head>
 <body>
 
-    <div class="main-layout">
-        <div class="left-panel">
-            <h2>3D Model Control Panel</h2>
-
-            <!-- Canvas 3D Viewer -->
-            <div class="canvas-container">
-                <canvas id="view"></canvas>
-            </div>
-
-            <!-- Orientation Selector -->
-            <div class="ori-selector ori">
-                <span style="font-size: 13px; font-weight: bold; color: #8b949e;">Trục chính:</span>
-                <button id="ox" onclick="setOri('X')">Trục X</button>
-                <button id="oy" onclick="setOri('Y')">Trục Y</button>
-                <button id="oz" class="active" onclick="setOri('Z')">Trục Z</button>
-            </div>
-
-            <!-- Position & Size Inputs -->
-            <div class="input-grid">
-                <div class="input-group">
-                    <label>Pos X (mm)</label>
-                    <input type="number" id="px" value="0">
-                </div>
-                <div class="input-group">
-                    <label>Pos Y (mm)</label>
-                    <input type="number" id="py" value="0">
-                </div>
-                <div class="input-group">
-                    <label>Pos Z (mm)</label>
-                    <input type="number" id="pz" value="0">
-                </div>
-
-                <div class="input-group">
-                    <label>Length L (mm)</label>
-                    <input type="number" id="dx" value="500">
-                </div>
-                <div class="input-group">
-                    <label>Width W (mm)</label>
-                    <input type="number" id="dy" value="300">
-                </div>
-                <div class="input-group">
-                    <label>Height H (mm)</label>
-                    <input type="number" id="dz" value="200">
-                </div>
-
-                <div class="input-group">
-                    <label>Radius R1 (mm)</label>
-                    <input type="number" id="r1" value="150">
-                </div>
-                <div class="input-group">
-                    <label>Radius R2 (mm)</label>
-                    <input type="number" id="r2" value="150">
-                </div>
-                <div class="input-group">
-                    <label>Radius R3 (mm)</label>
-                    <input type="number" id="r3" value="150">
-                </div>
-                <div class="input-group">
-                    <label>Radius R4 (mm)</label>
-                    <input type="number" id="r4" value="150">
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <button class="btn btn-primary" onclick="saveFile()">💾 Xuất MAC</button>
-                <button class="btn btn-success" onclick="voice()">🎙️ Giọng nói</button>
-                <button class="btn btn-info" onclick="library()">📚 Thư viện</button>
-                <button class="btn btn-secondary" onclick="reset()">🔄 Reset</button>
-                <button class="btn btn-secondary" onclick="help()">❓ Trợ giúp</button>
-            </div>
-
-            <!-- Chat Console Log -->
-            <div class="chat-log" id="chat">
-                <div>🤖 Hệ thống đã sẵn sàng. Hãy chọn thao tác hoặc nhập thông số...</div>
-            </div>
-        </div>
+    <!-- THAY THẾ CÁC PHẦN TỬ GIAO DIỆN CỦA BẠN VÀO ĐÂY -->
+    <div id="libraryModal">
+        <div id="docCountText"></div>
+        <input type="text" id="searchInput" placeholder="Tìm kiếm..." oninput="filterDocs()">
+        <div id="docList"></div>
     </div>
 
-    <!-- ==========================================================================
-         MODAL DIALOG & LIBRARY UI
-         ========================================================================== -->
-    <div class="modal-overlay" id="libraryModal">
-        <div class="modal-container">
-            
-            <!-- Modal Header -->
-            <div class="modal-header">
-                <div class="modal-title">
-                    <span>📚</span> Thư Viện Kỹ Thuật & Công Cụ
-                </div>
-                <button class="close-icon-btn" onclick="closeLibraryModal()">✕</button>
-            </div>
+    <!-- KHỞI TẠO FIREBASE SDK (ĐẶT TRƯỚC SCRIPT CHÍNH) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { 
+        getFirestore, 
+        collection, 
+        onSnapshot, 
+        addDoc, 
+        doc, 
+        updateDoc, 
+        deleteDoc 
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-            <!-- Modal Body -->
-            <div class="modal-body">
-                
-                <!-- Sidebar Left -->
-                <div class="library-sidebar">
-                    <div class="sidebar-section-title">LOẠI TÀI LIỆU</div>
-                    <button class="nav-item active" onclick="setFilter('cat', 'all', this)">
-                        <span>Tất cả tài liệu</span>
-                        <span class="badge" id="badge-cat-all">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setFilter('cat', 'standards', this)">
-                        <span>Tiêu chuẩn & Quy chuẩn</span>
-                        <span class="badge" id="badge-cat-standards">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setFilter('cat', 'methods', this)">
-                        <span>Biện pháp thi công</span>
-                        <span class="badge" id="badge-cat-methods">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setFilter('cat', 'experience', this)">
-                        <span>Kinh nghiệm & Bài học</span>
-                        <span class="badge" id="badge-cat-experience">0</span>
-                    </button>
+      // ⚠️ ĐÃ SỬA: Hãy thay thế bằng thông số THỰC TẾ lấy từ Firebase Console của bạn
+      const firebaseConfig = {
+    apiKey: "AIzaSyAbbPaSakecB3z-dqQ3FfhS6prHKICCFeA",
+    authDomain: "d-opening-tool.firebaseapp.com",
+    projectId: "d-opening-tool",
+    storageBucket: "d-opening-tool.firebasestorage.app",
+    messagingSenderId: "242030973735",
+    appId: "1:242030973735:web:d48715738f5709963e4f02",
+    measurementId: "G-M384KGE56Z"
+  };
+      try {
+        // Khởi tạo ứng dụng Firebase
+        const app = initializeApp(firebaseConfig);
+        
+        // Gán các hàm Firestore vào biến toàn cục window để script.js dùng
+        window.db = getFirestore(app);
+        window.fs = {
+          collection,
+          onSnapshot,
+          addDoc,
+          doc,
+          updateDoc,
+          deleteDoc
+        };
+        console.log("✅ Firebase SDK initialized successfully!");
+      } catch (err) {
+        console.error("❌ Lỗi khởi tạo Firebase SDK:", err);
+      }
+    </script>
 
-                    <div class="sidebar-section-title">CHUYÊN NGÀNH</div>
-                    <button class="nav-item" onclick="setFilter('dept', 'hull', this)">
-                        <span>Vỏ tàu (Hull)</span>
-                        <span class="badge" id="badge-dept-hull">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setFilter('dept', 'piping', this)">
-                        <span>Ống (Piping)</span>
-                        <span class="badge" id="badge-dept-piping">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setFilter('dept', 'electrical', this)">
-                        <span>Điện (Electrical)</span>
-                        <span class="badge" id="badge-dept-electrical">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setFilter('dept', 'outfitting', this)">
-                        <span>Trang trí (Outfitting)</span>
-                        <span class="badge" id="badge-dept-outfitting">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setFilter('dept', 'others', this)">
-                        <span>Khác (Others)</span>
-                        <span class="badge" id="badge-dept-others">0</span>
-                    </button>
-
-                    <div class="sidebar-section-title">CÔNG CỤ HỖ TRỢ</div>
-                    <div class="tool-item-card">
-                        <div class="tool-info">
-                            <span>🛠️</span>
-                            <div>
-                                <div class="tool-name">Tool Opening 3D</div>
-                                <div class="tool-sub-text">Phần mềm hỗ trợ 3D</div>
-                            </div>
-                        </div>
-                        <button class="btn-download-icon" onclick="downloadTool()" title="Tải về">⬇</button>
-                    </div>
-                </div>
-
-                <!-- Main Content Right -->
-                <div class="library-content">
-                    
-                    <!-- Status Bar -->
-                    <div class="status-bar">
-                        <div class="status-text">
-                            <span class="check-icon">✓</span>
-                            <span id="docCountText">Loaded 0 documents</span>
-                        </div>
-                        <button class="btn-refresh" onclick="refreshDocs()">🔄 Sync Cloud</button>
-                    </div>
-
-                    <!-- Toolbar Search & Add -->
-                    <div class="toolbar">
-                        <div class="search-box">
-                            <span class="search-icon">🔍</span>
-                            <input type="text" id="searchInput" placeholder="Tìm kiếm tài liệu hoặc tag..." oninput="filterDocs()">
-                        </div>
-                        <button class="btn-voice-search" onclick="startVoiceSearch()" title="Tìm kiếm bằng giọng nói">🎙️</button>
-                        <!-- Thêm tài liệu công khai không yêu cầu mật khẩu -->
-                        <button class="btn btn-add" onclick="openAddFormPublic()">+ Add</button>
-                    </div>
-
-                    <!-- Hidden Add / Edit Form Card -->
-                    <div class="add-form-card" id="addFormCard" style="display: none;">
-                        <input type="hidden" id="editingDocId" value="">
-                        
-                        <div class="form-row">
-                            <input type="text" id="docNameInput" class="form-control" placeholder="Tên tài liệu...">
-                            <input type="text" id="docLinkInput" class="form-control" placeholder="Link (URL Google Drive / Web)...">
-                        </div>
-                        
-                        <div class="form-row">
-                            <select id="docCategorySelect" class="form-control">
-                                <option value="standards">Tiêu chuẩn & Quy chuẩn</option>
-                                <option value="methods">Biện pháp thi công</option>
-                                <option value="experience">Kinh nghiệm & Bài học</option>
-                            </select>
-                            
-                            <select id="docDepartmentSelect" class="form-control">
-                                <option value="hull">Vỏ tàu (Hull)</option>
-                                <option value="piping">Ống (Piping)</option>
-                                <option value="electrical">Điện (Electrical)</option>
-                                <option value="outfitting">Trang trí (Outfitting)</option>
-                                <option value="others">Khác (Others)</option>
-                            </select>
-
-                            <input type="text" id="docTagsInput" class="form-control" placeholder="Tags (ngăn cách bằng dấu phẩy)...">
-                        </div>
-
-                        <div class="form-actions">
-                            <button id="saveDocBtn" class="btn btn-purple" onclick="addDocument()">➕ Add</button>
-                            <button id="cancelEditBtn" class="btn btn-secondary" style="display: none;" onclick="cancelEdit()">Hủy</button>
-                        </div>
-                    </div>
-
-                    <!-- Document List Container -->
-                    <div class="doc-list" id="docList">
-                        <!-- Danh sách tài liệu tự động render qua JS -->
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="modal-footer">
-                <button class="btn-close-footer" onclick="closeLibraryModal()">Đóng</button>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- External Script -->
+    <!-- NHÚNG FILE SCRIPT.JS Ở CUỐI -->
     <script src="script.js"></script>
 </body>
 </html>
