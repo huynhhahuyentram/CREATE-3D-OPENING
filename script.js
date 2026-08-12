@@ -558,13 +558,20 @@ function updateBadges() {
     setBadge('badge-dept-outfitting', count('dept', 'outfitting'));
 }
 
+// Render chuẩn UI ảnh với trạng thái Trống thư mục (Empty State)
 function renderDocuments(list) {
     const container = document.getElementById('docList');
     if (!container) return;
     container.innerHTML = '';
 
     if (!list || list.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">Chưa có tài liệu nào trong thư viện.</div>';
+        container.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: 50px 20px; background: #161b2e; border: 2px dashed #232a45; border-radius: 14px; margin-top: 10px;">
+                <div class="empty-icon" style="font-size: 42px; margin-bottom: 10px; opacity: 0.8;">📁</div>
+                <div class="empty-title" style="font-size: 18px; font-weight: 600; color: #cbd5e1;">Thư mục trống</div>
+                <div class="empty-sub" style="font-size: 13px; color: #64748b; margin-top: 6px;">Chưa có tài liệu nào thuộc danh mục này. Bấm "<b>+ Add</b>" để thêm mới!</div>
+            </div>
+        `;
         return;
     }
 
@@ -600,7 +607,7 @@ function renderDocuments(list) {
 
         const openBtn = document.createElement('button');
         openBtn.className = 'btn btn-purple btn-open-purple';
-        openBtn.innerHTML = '📁 Open';
+        openBtn.innerHTML = '📂 Open';
         openBtn.onclick = () => openDocLink(item.link);
 
         const editBtn = document.createElement('button');
