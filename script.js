@@ -26,8 +26,16 @@ function verifyAdmin() {
     }
 }
 
+let firebaseConnectAttempts = 0;
 function initFirebaseListener() {
+    // Kiểm tra xem Firebase SDK đã gán vào window chưa
     if (!window.db || !window.fs) {
+        firebaseConnectAttempts++;
+        if (firebaseConnectAttempts > 25) {
+            console.error("❌ LỖI KẾT NỐI: Chưa cấu hình window.db hoặc window.fs ở file HTML!");
+            alert("Chưa kết nối được Firebase! Vui lòng kiểm tra lại cấu hình Firebase SDK trong file HTML.");
+            return;
+        }
         setTimeout(initFirebaseListener, 200);
         return;
     }
@@ -46,17 +54,21 @@ function initFirebaseListener() {
             });
             updateBadges();
             renderDocuments(getFilteredDocs());
+            console.log("🔥 Firestore Realtime Synced:", documents.length, "documents");
         }, (error) => {
             console.warn("Firestore listener warning:", error.message);
+            alert("Lỗi Firestore: " + error.message + "\nHãy kiểm tra lại Rules trong Firebase Console!");
         });
     } catch (err) {
         console.error("Firebase init error:", err);
     }
 }
 
+// Khởi chạy kết nối
 initFirebaseListener();
 
 function refreshDocs() {
+    firebaseConnectAttempts = 0;
     initFirebaseListener();
     log("🔄 Synced documents from cloud.");
 }
@@ -516,7 +528,6 @@ function closeLibraryModal() {
     cancelEdit();
 }
 
-// Mở form Thêm tài liệu công khai (Ai cũng có thể thêm)
 function openAddFormPublic() {
     cancelEdit();
     const card = document.getElementById('addFormCard');
@@ -528,7 +539,7 @@ function openAddFormPublic() {
 function toggleAddForm() {
     const card = document.getElementById('addFormCard');
     if (card) {
-        card.style.display = card.style.display === 'none' ? 'flex' : 'none';
+        card.style.display = (card.style.display === 'none' || !card.style.display) ? 'flex' : 'none';
     }
 }
 
@@ -673,7 +684,7 @@ function openDocLink(urlStr) {
     }
 }
 
-// Hàm thêm tài liệu công khai / Sửa tài liệu bảo mật
+// **HÀM THÊM / SỬA TÀI LIỆU LÊN FIREBASE ĐÃ SỬA TỐI ƯU**
 async function addDocument() {
     const editingIdEl = document.getElementById('editingDocId');
     const editingId = editingIdEl ? editingIdEl.value : '';
@@ -686,7 +697,7 @@ async function addDocument() {
 
     const name = nameInput ? nameInput.value.trim() : '';
     const link = linkInput ? linkInput.value.trim() : '';
-    const tags = tagsInput && tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()).filter(Boolean) : [];
+    const tags = (tagsInput && tagsInput.value) ? tagsInput.value.split(',').map(t => t.trim()).filter(Boolean) : [];
     const category = catSelect ? catSelect.value : 'standards';
     const department = deptSelect ? deptSelect.value : 'hull';
 
@@ -702,12 +713,12 @@ async function addDocument() {
         }
 
         if (editingId) {
-            // Sửa tài liệu (Đã xác thực admin từ nút Edit)
+            // Sửa tài liệu
             const docRef = window.fs.doc(window.db, "documents", editingId);
             await window.fs.updateDoc(docRef, { name, link, tags, category, department });
             alert("Đã cập nhật tài liệu thành công!");
         } else {
-            // Thêm tài liệu mới (Công khai)
+            // Thêm tài liệu mới
             const docsRef = window.fs.collection(window.db, "documents");
             await window.fs.addDoc(docsRef, { 
                 name, 
@@ -717,12 +728,12 @@ async function addDocument() {
                 department,
                 createdAt: new Date().toISOString()
             });
-            alert("Đã thêm tài liệu thành công!");
+            alert("Đã thêm tài liệu mới thành công!");
         }
         cancelEdit();
     } catch (error) {
         console.error("Lỗi khi lưu dữ liệu lên Firebase:", error);
-        alert("Lỗi khi kết nối Firebase: " + error.message);
+        alert("Lỗi kết nối Firebase: " + error.message);
     }
 }
 
@@ -738,8 +749,13 @@ function editDoc(id) {
     setInputValue('docNameInput', docItem.name || '');
     setInputValue('docLinkInput', docItem.link || '');
     setInputValue('docTagsInput', docItem.tags ? docItem.tags.join(', ') : '');
-    if (document.getElementById('docCategorySelect') && docItem.category) document.getElementById('docCategorySelect').value = docItem.category;
-    if (document.getElementById('docDepartmentSelect') && docItem.department) document.getElementById('docDepartmentSelect').value = docItem.department;
+    
+    if (document.getElementById('docCategorySelect') && docItem.category) {
+        document.getElementById('docCategorySelect').value = docItem.category;
+    }
+    if (document.getElementById('docDepartmentSelect') && docItem.department) {
+        document.getElementById('docDepartmentSelect').value = docItem.department;
+    }
 
     const saveBtn = document.getElementById('saveDocBtn');
     if (saveBtn) {
