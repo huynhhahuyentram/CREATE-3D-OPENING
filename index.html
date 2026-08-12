@@ -3,200 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Opening & Library Management</title>
+    <title>3D Modeling & Library System</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase SDK (Compat Version) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script>
-        // Cấu hình Firebase Config
+    
+    <!-- Firebase SDK (Modular CDN) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            onSnapshot, 
+            addDoc, 
+            doc, 
+            updateDoc, 
+            deleteDoc 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Cấu hình Firebase
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDummyKeyForTemplateCheck",
+            authDomain: "your-app.firebaseapp.com",
+            projectId: "your-app-id",
+            storageBucket: "your-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
         };
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        window.db = firebase.firestore();
+
+        // Khởi tạo Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Gắn biến vào global window để script.js truy cập
+        window.db = db;
         window.fs = {
-            collection: (db, name) => db.collection(name),
-            doc: (db, name, id) => db.collection(name).doc(id),
-            onSnapshot: (ref, callback, errCb) => ref.onSnapshot(callback, errCb),
-            addDoc: (ref, data) => ref.add(data),
-            updateDoc: (ref, data) => ref.update(data),
-            deleteDoc: (ref) => ref.delete()
+            collection,
+            onSnapshot,
+            addDoc,
+            doc,
+            updateDoc,
+            deleteDoc
         };
     </script>
 </head>
 <body>
 
     <div class="main-layout">
-        <!-- Main Panel: Nhập thông số và Vẽ Canvas 3D -->
         <div class="left-panel">
-            <h2>3D Model Viewer</h2>
+            <h2>3D Model Control Panel</h2>
+
+            <!-- Canvas 3D Viewer -->
             <div class="canvas-container">
-                <canvas id="view" width="800" height="400"></canvas>
+                <canvas id="view"></canvas>
             </div>
 
-            <div class="ori-selector">
-                <span>Trục Tọa Độ (ORI):</span>
-                <button id="oz" class="active" onclick="setOri('Z')">Z</button>
-                <button id="ox" onclick="setOri('X')">X</button>
-                <button id="oy" onclick="setOri('Y')">Y</button>
+            <!-- Orientation Selector -->
+            <div class="ori-selector ori">
+                <span style="font-size: 13px; font-weight: bold; color: #8b949e;">Trục chính:</span>
+                <button id="ox" onclick="setOri('X')">Trục X</button>
+                <button id="oy" onclick="setOri('Y')">Trục Y</button>
+                <button id="oz" class="active" onclick="setOri('Z')">Trục Z</button>
             </div>
 
+            <!-- Position & Size Inputs -->
             <div class="input-grid">
-                <div class="input-group"><label>Pos X:</label><input type="number" id="px" value="0"></div>
-                <div class="input-group"><label>Pos Y:</label><input type="number" id="py" value="0"></div>
-                <div class="input-group"><label>Pos Z:</label><input type="number" id="pz" value="0"></div>
-                
-                <div class="input-group"><label>Length (L):</label><input type="number" id="dx" value="500"></div>
-                <div class="input-group"><label>Width (W):</label><input type="number" id="dy" value="300"></div>
-                <div class="input-group"><label>Height (H):</label><input type="number" id="dz" value="200"></div>
+                <div class="input-group">
+                    <label>Pos X (mm)</label>
+                    <input type="number" id="px" value="0">
+                </div>
+                <div class="input-group">
+                    <label>Pos Y (mm)</label>
+                    <input type="number" id="py" value="0">
+                </div>
+                <div class="input-group">
+                    <label>Pos Z (mm)</label>
+                    <input type="number" id="pz" value="0">
+                </div>
 
-                <div class="input-group"><label>R1:</label><input type="number" id="r1" value="150"></div>
-                <div class="input-group"><label>R2:</label><input type="number" id="r2" value="150"></div>
-                <div class="input-group"><label>R3:</label><input type="number" id="r3" value="150"></div>
-                <div class="input-group"><label>R4:</label><input type="number" id="r4" value="150"></div>
+                <div class="input-group">
+                    <label>Length L (mm)</label>
+                    <input type="number" id="dx" value="500">
+                </div>
+                <div class="input-group">
+                    <label>Width W (mm)</label>
+                    <input type="number" id="dy" value="300">
+                </div>
+                <div class="input-group">
+                    <label>Height H (mm)</label>
+                    <input type="number" id="dz" value="200">
+                </div>
+
+                <div class="input-group">
+                    <label>Radius R1 (mm)</label>
+                    <input type="number" id="r1" value="150">
+                </div>
+                <div class="input-group">
+                    <label>Radius R2 (mm)</label>
+                    <input type="number" id="r2" value="150">
+                </div>
+                <div class="input-group">
+                    <label>Radius R3 (mm)</label>
+                    <input type="number" id="r3" value="150">
+                </div>
+                <div class="input-group">
+                    <label>Radius R4 (mm)</label>
+                    <input type="number" id="r4" value="150">
+                </div>
             </div>
 
+            <!-- Action Buttons -->
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="voice()">🎤 Nói Voice NLP</button>
-                <button class="btn btn-success" onclick="saveFile()">💾 Xuất File Macro</button>
+                <button class="btn btn-primary" onclick="saveFile()">💾 Xuất MAC</button>
+                <button class="btn btn-success" onclick="voice()">🎙️ Giọng nói</button>
+                <button class="btn btn-info" onclick="library()">📚 Thư viện</button>
                 <button class="btn btn-secondary" onclick="reset()">🔄 Reset</button>
-                <button class="btn btn-info" onclick="openLibraryModal()">📚 Thư Viện</button>
+                <button class="btn btn-secondary" onclick="help()">❓ Trợ giúp</button>
             </div>
 
-            <div id="chat" class="chat-log"></div>
+            <!-- Chat Console Log -->
+            <div class="chat-log" id="chat">
+                <div>🤖 Hệ thống đã sẵn sàng. Hãy chọn thao tác hoặc nhập thông số...</div>
+            </div>
         </div>
     </div>
 
-    <!-- Modal Thư Viện (LIBRARY MODAL) -->
-    <div id="libraryModal" class="modal-overlay">
+    <!-- ==========================================================================
+         MODAL DIALOG & LIBRARY UI
+         ========================================================================== -->
+    <div class="modal-overlay" id="libraryModal">
         <div class="modal-container">
+            
+            <!-- Modal Header -->
             <div class="modal-header">
                 <div class="modal-title">
-                    <span>📚</span> LIBRARY
+                    <span>📚</span> Thư Viện Kỹ Thuật & Công Cụ
                 </div>
                 <button class="close-icon-btn" onclick="closeLibraryModal()">✕</button>
             </div>
 
+            <!-- Modal Body -->
             <div class="modal-body">
-                <!-- Sidebar Danh mục bên trái -->
+                
+                <!-- Sidebar Left -->
                 <div class="library-sidebar">
-                    <div class="sidebar-section-title">CATEGORIES</div>
+                    <div class="sidebar-section-title">LOẠI TÀI LIỆU</div>
                     <button class="nav-item active" onclick="setFilter('cat', 'all', this)">
-                        <span>📄 All Documents</span>
+                        <span>Tất cả tài liệu</span>
                         <span class="badge" id="badge-cat-all">0</span>
                     </button>
                     <button class="nav-item" onclick="setFilter('cat', 'standards', this)">
-                        <span>📋 Rules & Standards</span>
+                        <span>Tiêu chuẩn & Quy chuẩn</span>
                         <span class="badge" id="badge-cat-standards">0</span>
                     </button>
                     <button class="nav-item" onclick="setFilter('cat', 'methods', this)">
-                        <span>🔧 Methods</span>
+                        <span>Biện pháp thi công</span>
                         <span class="badge" id="badge-cat-methods">0</span>
                     </button>
                     <button class="nav-item" onclick="setFilter('cat', 'experience', this)">
-                        <span>💡 Experience</span>
+                        <span>Kinh nghiệm & Bài học</span>
                         <span class="badge" id="badge-cat-experience">0</span>
                     </button>
 
-                    <div class="sidebar-section-title">BY DEPARTMENT</div>
+                    <div class="sidebar-section-title">CHUYÊN NGÀNH</div>
                     <button class="nav-item" onclick="setFilter('dept', 'hull', this)">
-                        <span>🚢 Hull</span>
+                        <span>Vỏ tàu (Hull)</span>
                         <span class="badge" id="badge-dept-hull">0</span>
                     </button>
                     <button class="nav-item" onclick="setFilter('dept', 'piping', this)">
-                        <span>🔧 Piping</span>
+                        <span>Ống (Piping)</span>
                         <span class="badge" id="badge-dept-piping">0</span>
                     </button>
                     <button class="nav-item" onclick="setFilter('dept', 'electrical', this)">
-                        <span>⚡ Electrical</span>
+                        <span>Điện (Electrical)</span>
                         <span class="badge" id="badge-dept-electrical">0</span>
                     </button>
                     <button class="nav-item" onclick="setFilter('dept', 'outfitting', this)">
-                        <span>🛠️ Outfitting</span>
+                        <span>Trang trí (Outfitting)</span>
                         <span class="badge" id="badge-dept-outfitting">0</span>
                     </button>
                     <button class="nav-item" onclick="setFilter('dept', 'others', this)">
-                        <span>📎 Others</span>
+                        <span>Khác (Others)</span>
                         <span class="badge" id="badge-dept-others">0</span>
                     </button>
 
-                    <!-- Danh mục TOOLS -->
-                    <div class="sidebar-section-title">TOOLS</div>
-                    <div class="tool-item-card" onclick="downloadTool()">
+                    <div class="sidebar-section-title">CÔNG CỤ HỖ TRỢ</div>
+                    <div class="tool-item-card">
                         <div class="tool-info">
-                            <span class="tool-icon">🧊</span>
-                            <span class="tool-name">3D Opening Tool</span>
+                            <span>🛠️</span>
+                            <div>
+                                <div class="tool-name">Tool Opening 3D</div>
+                                <div class="tool-sub-text">Phần mềm hỗ trợ 3D</div>
+                            </div>
                         </div>
-                        <button class="btn-download-icon" title="Download Tool">↓</button>
+                        <button class="btn-download-icon" onclick="downloadTool()" title="Tải về">⬇</button>
                     </div>
-                    <div class="tool-sub-text">Click to download tool</div>
                 </div>
 
-                <!-- Nội dung danh sách tài liệu bên phải -->
+                <!-- Main Content Right -->
                 <div class="library-content">
+                    
+                    <!-- Status Bar -->
                     <div class="status-bar">
                         <div class="status-text">
                             <span class="check-icon">✓</span>
                             <span id="docCountText">Loaded 0 documents</span>
                         </div>
-                        <button class="btn btn-add" onclick="openAddFormPublic()">+ Add</button>
+                        <button class="btn-refresh" onclick="refreshDocs()">🔄 Sync Cloud</button>
                     </div>
 
+                    <!-- Toolbar Search & Add -->
                     <div class="toolbar">
                         <div class="search-box">
                             <span class="search-icon">🔍</span>
-                            <input type="text" id="searchInput" placeholder="Search documents..." oninput="filterDocs()">
+                            <input type="text" id="searchInput" placeholder="Tìm kiếm tài liệu hoặc tag..." oninput="filterDocs()">
                         </div>
-                        <button class="btn-voice-search" onclick="startVoiceSearch()" title="Tìm kiếm bằng giọng nói">🎤</button>
-                        <button class="btn-add" onclick="toggleAddForm()">+ Add</button>
+                        <button class="btn-voice-search" onclick="startVoiceSearch()" title="Tìm kiếm bằng giọng nói">🎙️</button>
+                        <!-- Thêm tài liệu công khai không yêu cầu mật khẩu -->
+                        <button class="btn btn-add" onclick="openAddFormPublic()">+ Add</button>
                     </div>
 
-                    <!-- Form Thêm/Sửa Tài Liệu (Ẩn mặc định) -->
-                    <div id="addFormCard" class="add-form-card" style="display: none;">
-                        <input type="hidden" id="editingDocId">
-                        <input type="text" id="docNameInput" placeholder="Tên tài liệu..." class="form-control">
-                        <input type="text" id="docLinkInput" placeholder="URL Google Drive hoặc đường dẫn..." class="form-control">
-                        <input type="text" id="docTagsInput" placeholder="Thẻ tags (phân cách bằng dấu phẩy)..." class="form-control">
+                    <!-- Hidden Add / Edit Form Card -->
+                    <div class="add-form-card" id="addFormCard" style="display: none;">
+                        <input type="hidden" id="editingDocId" value="">
+                        
+                        <div class="form-row">
+                            <input type="text" id="docNameInput" class="form-control" placeholder="Tên tài liệu...">
+                            <input type="text" id="docLinkInput" class="form-control" placeholder="Link (URL Google Drive / Web)...">
+                        </div>
+                        
                         <div class="form-row">
                             <select id="docCategorySelect" class="form-control">
-                                <option value="standards">Rules & Standards</option>
-                                <option value="methods">Methods</option>
-                                <option value="experience">Experience</option>
-                                <option value="others">Others</option>
+                                <option value="standards">Tiêu chuẩn & Quy chuẩn</option>
+                                <option value="methods">Biện pháp thi công</option>
+                                <option value="experience">Kinh nghiệm & Bài học</option>
                             </select>
+                            
                             <select id="docDepartmentSelect" class="form-control">
-                                <option value="hull">Hull</option>
-                                <option value="piping">Piping</option>
-                                <option value="electrical">Electrical</option>
-                                <option value="outfitting">Outfitting</option>
-                                <option value="others">Others</option>
+                                <option value="hull">Vỏ tàu (Hull)</option>
+                                <option value="piping">Ống (Piping)</option>
+                                <option value="electrical">Điện (Electrical)</option>
+                                <option value="outfitting">Trang trí (Outfitting)</option>
+                                <option value="others">Khác (Others)</option>
                             </select>
+
+                            <input type="text" id="docTagsInput" class="form-control" placeholder="Tags (ngăn cách bằng dấu phẩy)...">
                         </div>
+
                         <div class="form-actions">
-                            <button id="saveDocBtn" class="btn btn-purple" onclick="addDocument()">+ Add</button>
-                            <button id="cancelEditBtn" class="btn btn-secondary" onclick="cancelEdit()" style="display: none;">Hủy</button>
+                            <button id="saveDocBtn" class="btn btn-purple" onclick="addDocument()">➕ Add</button>
+                            <button id="cancelEditBtn" class="btn btn-secondary" style="display: none;" onclick="cancelEdit()">Hủy</button>
                         </div>
                     </div>
 
-                    <!-- Danh sách tài liệu -->
-                    <div id="docList" class="doc-list"></div>
+                    <!-- Document List Container -->
+                    <div class="doc-list" id="docList">
+                        <!-- Danh sách tài liệu tự động render qua JS -->
+                    </div>
+
                 </div>
             </div>
 
+            <!-- Modal Footer -->
             <div class="modal-footer">
-                <button class="btn-close-footer" onclick="closeLibraryModal()">Close</button>
+                <button class="btn-close-footer" onclick="closeLibraryModal()">Đóng</button>
             </div>
+
         </div>
     </div>
 
+    <!-- External Script -->
     <script src="script.js"></script>
 </body>
 </html>
