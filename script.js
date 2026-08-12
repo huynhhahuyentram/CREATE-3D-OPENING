@@ -10,7 +10,7 @@ let currentFilter = {
 };
 
 function initFirebaseListener() {
-    if (!window.db) {
+    if (!window.db || !window.fs) {
         setTimeout(initFirebaseListener, 200);
         return;
     }
@@ -48,7 +48,7 @@ function refreshDocs() {
 // 2. CANVAS 3D MODELING & RENDERING (ISOMETRIC & ROUNDED CORNERS)
 // ==========================================================================
 const c = document.getElementById("view");
-const ctx = c.getContext("2d");
+const ctx = c ? c.getContext("2d") : null;
 let ORI = "Z";
 
 function setOri(o) {
@@ -60,13 +60,17 @@ function setOri(o) {
 }
 
 function parseInputValue(id) {
-    let raw = (document.getElementById(id).value || "").toString().trim();
+    const el = document.getElementById(id);
+    if (!el) return 0;
+    let raw = (el.value || "").toString().trim();
     if (!raw) return 0;
     raw = raw.replace(/\./g, '').replace(',', '.');
     return parseFloat(raw) || 0;
 }
 
 function draw() {
+    if (!c || !ctx) return;
+    
     c.width = c.offsetWidth;
     c.height = 280;
 
@@ -99,6 +103,7 @@ function draw() {
 }
 
 function drawAxis() {
+    if (!ctx) return;
     ctx.lineWidth = 2.5;
     ctx.font = "bold 13px Segoe UI";
     let x0 = 50, y0 = 220;
@@ -122,6 +127,7 @@ function projectISO(x, y, z, cx, cy) {
 }
 
 function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
+    if (!ctx) return;
     let r1 = parseInputValue("r1");
     let r2 = parseInputValue("r2");
     let r3 = parseInputValue("r3");
@@ -157,11 +163,11 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
 
     function drawRoundedRect(ox, oy, w, h, rTL, rTR, rBR, rBL) {
         const segments = 12;
-        function arcPoint(cx, cy, r, startAngle, endAngle) {
+        function arcPoint(cxP, cyP, r, startAngle, endAngle) {
             const pts = [];
             for (let i = 0; i <= segments; i++) {
                 const t = startAngle + (endAngle - startAngle) * (i / segments);
-                pts.push({x: cx + r * Math.cos(t), y: cy + r * Math.sin(t)});
+                pts.push({x: cxP + r * Math.cos(t), y: cyP + r * Math.sin(t)});
             }
             return pts;
         }
@@ -347,18 +353,18 @@ function processFullVoiceNLP(t) {
     let posY = findVal(["tọa độ y", "vị trí y", "pos y", "position y", "y"]);
     let posZ = findVal(["tọa độ zét", "tọa độ zed", "tọa độ z", "vị trí z", "pos z", "position z", "z"]);
 
-    if (posX !== null) { document.getElementById("px").value = posX; updatedCount++; }
-    if (posY !== null) { document.getElementById("py").value = posY; updatedCount++; }
-    if (posZ !== null) { document.getElementById("pz").value = posZ; updatedCount++; }
+    if (posX !== null) { setInputValue("px", posX); updatedCount++; }
+    if (posY !== null) { setInputValue("py", posY); updatedCount++; }
+    if (posZ !== null) { setInputValue("pz", posZ); updatedCount++; }
 
     // 4. Nhận diện Kích thước Dimensions (DX, DY, DZ)
     let len = findVal(["chiều dài", "độ dài", "dài", "length", "l"]);
     let wid = findVal(["chiều rộng", "độ rộng", "rộng", "width", "w"]);
     let hei = findVal(["chiều cao", "độ cao", "cao", "height", "h"]);
 
-    if (len !== null) { document.getElementById("dx").value = len; updatedCount++; }
-    if (wid !== null) { document.getElementById("dy").value = wid; updatedCount++; }
-    if (hei !== null) { document.getElementById("dz").value = hei; updatedCount++; }
+    if (len !== null) { setInputValue("dx", len); updatedCount++; }
+    if (wid !== null) { setInputValue("dy", wid); updatedCount++; }
+    if (hei !== null) { setInputValue("dz", hei); updatedCount++; }
 
     // 5. Nhận diện Bán kính Bo góc Radii (R1, R2, R3, R4)
     let rad1 = findVal(["r1", "radius 1", "bo góc 1", "bán kính 1"]);
@@ -367,13 +373,13 @@ function processFullVoiceNLP(t) {
     let rad4 = findVal(["r4", "radius 4", "bo góc 4", "bán kính 4"]);
     let radAll = findVal(["bo góc tất cả", "bo cả 4 góc", "tất cả góc bo", "bán kính bo", "bo góc"]);
 
-    if (rad1 !== null) { document.getElementById("r1").value = rad1; updatedCount++; }
-    if (rad2 !== null) { document.getElementById("r2").value = rad2; updatedCount++; }
-    if (rad3 !== null) { document.getElementById("r3").value = rad3; updatedCount++; }
-    if (rad4 !== null) { document.getElementById("r4").value = rad4; updatedCount++; }
+    if (rad1 !== null) { setInputValue("r1", rad1); updatedCount++; }
+    if (rad2 !== null) { setInputValue("r2", rad2); updatedCount++; }
+    if (rad3 !== null) { setInputValue("r3", rad3); updatedCount++; }
+    if (rad4 !== null) { setInputValue("r4", rad4); updatedCount++; }
     
     if (radAll !== null && rad1 === null && rad2 === null && rad3 === null && rad4 === null && len === null && wid === null && hei === null) {
-        ["r1", "r2", "r3", "r4"].forEach(id => document.getElementById(id).value = radAll);
+        ["r1", "r2", "r3", "r4"].forEach(id => setInputValue(id, radAll));
         updatedCount++;
     }
 
@@ -381,9 +387,9 @@ function processFullVoiceNLP(t) {
     if (updatedCount === 0) {
         let rawNums = str.match(/-?\d+(,\d+)?/g);
         if (rawNums && rawNums.length >= 3) {
-            document.getElementById("dx").value = cleanNumberString(rawNums[0]);
-            document.getElementById("dy").value = cleanNumberString(rawNums[1]);
-            document.getElementById("dz").value = cleanNumberString(rawNums[2]);
+            setInputValue("dx", cleanNumberString(rawNums[0]));
+            setInputValue("dy", cleanNumberString(rawNums[1]));
+            setInputValue("dz", cleanNumberString(rawNums[2]));
             updatedCount = 3;
         }
     }
@@ -398,6 +404,11 @@ function processFullVoiceNLP(t) {
         log("🤖 " + failMsg);
         speak(failMsg);
     }
+}
+
+function setInputValue(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
 }
 
 function speak(t) {
@@ -468,8 +479,8 @@ END`;
 }
 
 function reset() {
-    ["px","py","pz","dx","dy","dz"].forEach(id => document.getElementById(id).value = 0);
-    ["r1","r2","r3","r4"].forEach(id => document.getElementById(id).value = 150);
+    ["px","py","pz","dx","dy","dz"].forEach(id => setInputValue(id, 0));
+    ["r1","r2","r3","r4"].forEach(id => setInputValue(id, 150));
     setOri('Z');
     log("🔄 Reset parameters.");
 }
@@ -639,8 +650,8 @@ async function addDocument() {
     const catSelect = document.getElementById('docCategorySelect');
     const deptSelect = document.getElementById('docDepartmentSelect');
 
-    const name = nameInput.value.trim();
-    const link = linkInput.value.trim();
+    const name = nameInput ? nameInput.value.trim() : '';
+    const link = linkInput ? linkInput.value.trim() : '';
     const tags = tagsInput && tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()) : [];
     const category = catSelect ? catSelect.value : 'standards';
     const department = deptSelect ? deptSelect.value : 'hull';
@@ -671,10 +682,10 @@ function editDoc(id) {
 
     toggleAddForm();
 
-    if (document.getElementById('editingDocId')) document.getElementById('editingDocId').value = docItem.id;
-    if (document.getElementById('docNameInput')) document.getElementById('docNameInput').value = docItem.name || '';
-    if (document.getElementById('docLinkInput')) document.getElementById('docLinkInput').value = docItem.link || '';
-    if (document.getElementById('docTagsInput')) document.getElementById('docTagsInput').value = docItem.tags ? docItem.tags.join(', ') : '';
+    setInputValue('editingDocId', docItem.id);
+    setInputValue('docNameInput', docItem.name || '');
+    setInputValue('docLinkInput', docItem.link || '');
+    setInputValue('docTagsInput', docItem.tags ? docItem.tags.join(', ') : '');
     if (document.getElementById('docCategorySelect') && docItem.category) document.getElementById('docCategorySelect').value = docItem.category;
     if (document.getElementById('docDepartmentSelect') && docItem.department) document.getElementById('docDepartmentSelect').value = docItem.department;
 
@@ -689,10 +700,10 @@ function editDoc(id) {
 }
 
 function cancelEdit() {
-    if (document.getElementById('editingDocId')) document.getElementById('editingDocId').value = '';
-    if (document.getElementById('docNameInput')) document.getElementById('docNameInput').value = '';
-    if (document.getElementById('docLinkInput')) document.getElementById('docLinkInput').value = '';
-    if (document.getElementById('docTagsInput')) document.getElementById('docTagsInput').value = '';
+    setInputValue('editingDocId', '');
+    setInputValue('docNameInput', '');
+    setInputValue('docLinkInput', '');
+    setInputValue('docTagsInput', '');
 
     const saveBtn = document.getElementById('saveDocBtn');
     if (saveBtn) {
@@ -749,8 +760,7 @@ function startVoiceSearch() {
     let r = new SR(); r.lang = "vi-VN";
     r.onresult = e => {
         let q = e.results[0][0].transcript;
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) searchInput.value = q;
+        setInputValue('searchInput', q);
         filterDocsAndOpenBestMatch(q);
     };
     r.start();
