@@ -77,73 +77,136 @@
             <button class="help" onclick="help()">❓ Help</button>
         </div>
 
-        <div id="chat"></div>
+        <div id="chat">
+            <div><span class="status-dot green"></span>Ready</div>
+        </div>
     </div>
 </div>
 
-<!-- DOCUMENT LIBRARY MODAL -->
+<!-- DOCUMENT LIBRARY MODAL MODIFIED TO MATCH IMAGE DESIGN -->
 <div id="libraryModal" class="modal-overlay">
-    <div class="modal-content">
-        <!-- Input ẩn phục vụ cho tính năng Chỉnh sửa (Edit) -->
+    <div class="modal-content modal-lib-layout">
         <input type="hidden" id="editingDocId" value="">
 
-        <!-- Header -->
+        <!-- Modal Header -->
         <div class="modal-header">
-            <h2>📚 Document Library</h2>
+            <h2>📚 LIBRARY</h2>
             <button class="close-btn" onclick="closeLibraryModal()">&times;</button>
         </div>
 
-        <!-- Body -->
-        <div class="modal-body">
-            <!-- Alert Status (Đã bỏ nút Refresh) -->
-            <div class="status-alert">
-                <span>✅ Loaded <strong id="docCount">0</strong> documents</span>
+        <!-- Alert Status Bar -->
+        <div class="status-alert-green">
+            <div class="status-left">
+                <span class="check-box">✓</span>
+                <span id="docCountText">Loaded 0 documents</span>
+            </div>
+            <button class="btn-refresh" onclick="refreshDocs()">🔄 Refresh</button>
+        </div>
+
+        <!-- Main Grid: Sidebar + Main Content -->
+        <div class="lib-body-grid">
+            <!-- Left Sidebar -->
+            <div class="lib-sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">📁 CATEGORIES</div>
+                    <button class="nav-item active" data-filter-type="cat" data-filter-val="all" onclick="setFilter('cat', 'all', this)">
+                        <span class="nav-icon">📄</span>
+                        <span class="nav-text">All Documents</span>
+                        <span class="badge" id="badge-cat-all">0</span>
+                    </button>
+                    <button class="nav-item" data-filter-type="cat" data-filter-val="standards" onclick="setFilter('cat', 'standards', this)">
+                        <span class="nav-icon">📋</span>
+                        <span class="nav-text">Rules & Standards</span>
+                        <span class="badge" id="badge-cat-standards">0</span>
+                    </button>
+                    <button class="nav-item" data-filter-type="cat" data-filter-val="methods" onclick="setFilter('cat', 'methods', this)">
+                        <span class="nav-icon">🔧</span>
+                        <span class="nav-text">Methods</span>
+                        <span class="badge" id="badge-cat-methods">0</span>
+                    </button>
+                    <button class="nav-item" data-filter-type="cat" data-filter-val="experience" onclick="setFilter('cat', 'experience', this)">
+                        <span class="nav-icon">💡</span>
+                        <span class="nav-text">Experience</span>
+                        <span class="badge" id="badge-cat-experience">0</span>
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">🏗️ BY DEPARTMENT</div>
+                    <button class="nav-item" data-filter-type="dept" data-filter-val="hull" onclick="setFilter('dept', 'hull', this)">
+                        <span class="nav-icon">🚢</span>
+                        <span class="nav-text">Hull</span>
+                        <span class="badge" id="badge-dept-hull">0</span>
+                    </button>
+                    <button class="nav-item" data-filter-type="dept" data-filter-val="piping" onclick="setFilter('dept', 'piping', this)">
+                        <span class="nav-icon">🔧</span>
+                        <span class="nav-text">Piping</span>
+                        <span class="badge" id="badge-dept-piping">0</span>
+                    </button>
+                    <button class="nav-item" data-filter-type="dept" data-filter-val="electrical" onclick="setFilter('dept', 'electrical', this)">
+                        <span class="nav-icon">⚡</span>
+                        <span class="nav-text">Electrical</span>
+                        <span class="badge" id="badge-dept-electrical">0</span>
+                    </button>
+                    <button class="nav-item" data-filter-type="dept" data-filter-val="outfitting" onclick="setFilter('dept', 'outfitting', this)">
+                        <span class="nav-icon">🛠️</span>
+                        <span class="nav-text">Outfitting</span>
+                        <span class="badge" id="badge-dept-outfitting">0</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- Search Bar Section -->
-            <div class="search-section">
-                <label class="section-label">🔍 Search Documents</label>
-                <div class="search-controls">
-                    <input type="text" id="searchInput" placeholder="Search by name or tags..." onkeyup="filterDocs()">
-                    <div class="search-actions">
-                        <button class="btn btn-cyan" onclick="startVoiceSearch()">🎤 Voice</button>
-                        <button class="btn btn-purple" onclick="filterDocs()">🔍 Search</button>
+            <!-- Main Content Area -->
+            <div class="lib-main">
+                <!-- Search and Add Controls -->
+                <div class="lib-toolbar">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="Search documents..." onkeyup="filterDocs()">
+                    </div>
+                    <button class="btn-icon-cyan" onclick="startVoiceSearch()" title="Voice Search">🎤</button>
+                    <button class="btn-add-purple" onclick="toggleAddForm()">➕ Add</button>
+                </div>
+
+                <!-- Add/Edit Document Collapsible Form -->
+                <div class="add-form-card" id="addFormCard" style="display: none;">
+                    <input type="text" id="docNameInput" placeholder="Document Name...">
+                    <input type="text" id="docLinkInput" placeholder="Drive Link...">
+                    <input type="text" id="docTagsInput" placeholder="Tags (comma separated)...">
+                    <div class="form-row">
+                        <select id="docCategorySelect">
+                            <option value="standards">Rules & Standards</option>
+                            <option value="methods">Methods</option>
+                            <option value="experience">Experience</option>
+                            <option value="others" selected>Others</option>
+                        </select>
+                        <select id="docDepartmentSelect">
+                            <option value="hull">Hull</option>
+                            <option value="piping">Piping</option>
+                            <option value="electrical">Electrical</option>
+                            <option value="outfitting">Outfitting</option>
+                            <option value="others" selected>Others</option>
+                        </select>
+                        <button class="btn-save" id="saveDocBtn" onclick="addDocument()">💾 Save</button>
+                        <button class="btn-cancel" id="cancelEditBtn" onclick="cancelEdit()">✕ Cancel</button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Add / Edit Document Form -->
-            <div class="add-doc-form">
-                <input type="text" id="docNameInput" placeholder="Document name...">
-                <input type="text" id="docLinkInput" placeholder="Drive link...">
-                <input type="text" id="docTagsInput" placeholder="Tags (comma sep)...">
-                <div class="form-btn-group">
-                    <button class="btn btn-purple" id="saveDocBtn" onclick="addDocument()">➕ Add</button>
-                    <button class="btn btn-cancel-edit" id="cancelEditBtn" onclick="cancelEdit()" style="display: none;">Cancel</button>
-                </div>
-            </div>
-
-            <!-- Document List Box -->
-            <div class="doc-list-wrapper">
-                <div class="doc-list" id="docList">
-                    <!-- Javascript sẽ render danh sách ở đây -->
-                </div>
-                
-                <!-- Footer của danh sách chứa nút Clear All -->
-                <div class="doc-list-footer">
-                    <button class="btn btn-delete-sm" onclick="clearAllDocs()">🗑️ Clear All</button>
+                <!-- Document List -->
+                <div class="doc-list-scroll" id="docList">
+                    <!-- Javascript renders items here -->
                 </div>
             </div>
         </div>
 
         <!-- Modal Footer -->
         <div class="modal-footer">
-            <button class="btn-text-close" onclick="closeLibraryModal()">Close</button>
+            <button class="btn-close-dark" onclick="closeLibraryModal()">Close</button>
         </div>
     </div>
 </div>
 
-<!-- 1. KHỞI TẠO FIREBASE TRƯỚC -->
+<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
   import { 
@@ -167,10 +230,7 @@
   window.fs = { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc };
 </script>
 
-<!-- 2. NẠP FILE JS CỦA BẠN SAU CÙNG -->
 <script src="script.js"></script>
 
-</body>
-</html>
 </body>
 </html>
