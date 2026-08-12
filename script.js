@@ -9,6 +9,23 @@ let currentFilter = {
     val: 'all'
 };
 
+// Mật khẩu bảo mật cho các thao tác Thêm/Sửa/Xóa
+const ADMIN_PASSWORD = "kttt1234";
+
+// Link Google Drive tải phần mềm Tool 3D
+const GOOGLE_DRIVE_TOOL_LINK = "https://drive.google.com/"; // Thay bằng URL Google Drive thực tế của bạn
+
+function verifyAdmin() {
+    let password = prompt("Vui lòng nhập mật khẩu quản trị để thực hiện thao tác này:");
+    if (password === null) return false;
+    if (password === ADMIN_PASSWORD) {
+        return true;
+    } else {
+        alert("Mật khẩu không chính xác!");
+        return false;
+    }
+}
+
 function initFirebaseListener() {
     if (!window.db || !window.fs) {
         setTimeout(initFirebaseListener, 200);
@@ -208,7 +225,6 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     
     ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
     
-    // Cạnh đứng 4 góc
     ctx.strokeStyle = colors.border; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.6;
     const corners = [{x: 0, y: 0}, {x: d1, y: 0}, {x: d1, y: d2}, {x: 0, y: d2}];
     const cornerOffsets = [{x: r1s, y: r1s}, {x: -r2s, y: r2s}, {x: -r3s, y: -r3s}, {x: r4s, y: -r4s}];
@@ -220,7 +236,6 @@ function drawBox3DSharp(cx, cy, d1, d2, d3, lbl1, lbl2, lbl3, ori) {
     }
     ctx.globalAlpha = 1;
     
-    // Nhãn kích thước
     ctx.font = "bold 14px Segoe UI";
     let labelPositions = [
         {x: d1/2, y: 0, z: 0, color: colorMap.l1},
@@ -328,7 +343,6 @@ function processFullVoiceNLP(t) {
         return null;
     };
 
-    // 1. Nhận diện các lệnh hành động
     if (/(xuất mac|export|tải file|tạo file|lưu file|ok)/i.test(str)) {
         saveFile();
         updatedCount++;
@@ -343,12 +357,10 @@ function processFullVoiceNLP(t) {
         updatedCount++;
     }
 
-    // 2. Nhận diện Orientation
     if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?x\b/i.test(str)) { setOri('X'); updatedCount++; }
     else if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?y\b/i.test(str)) { setOri('Y'); updatedCount++; }
     else if (/(trục|hướng|ori|trục tọa độ)\s*(theo\s*trục\s*)?(z|zét|zed)\b/i.test(str)) { setOri('Z'); updatedCount++; }
 
-    // 3. Nhận diện vị trí Position (PX, PY, PZ)
     let posX = findVal(["tọa độ x", "vị trí x", "pos x", "position x", "đồ ít", "tọa độ ít", "tọa độ xy", "x"]);
     let posY = findVal(["tọa độ y", "vị trí y", "pos y", "position y", "y"]);
     let posZ = findVal(["tọa độ zét", "tọa độ zed", "tọa độ z", "vị trí z", "pos z", "position z", "z"]);
@@ -357,7 +369,6 @@ function processFullVoiceNLP(t) {
     if (posY !== null) { setInputValue("py", posY); updatedCount++; }
     if (posZ !== null) { setInputValue("pz", posZ); updatedCount++; }
 
-    // 4. Nhận diện Kích thước Dimensions (DX, DY, DZ)
     let len = findVal(["chiều dài", "độ dài", "dài", "length", "l"]);
     let wid = findVal(["chiều rộng", "độ rộng", "rộng", "width", "w"]);
     let hei = findVal(["chiều cao", "độ cao", "cao", "height", "h"]);
@@ -366,7 +377,6 @@ function processFullVoiceNLP(t) {
     if (wid !== null) { setInputValue("dy", wid); updatedCount++; }
     if (hei !== null) { setInputValue("dz", hei); updatedCount++; }
 
-    // 5. Nhận diện Bán kính Bo góc Radii (R1, R2, R3, R4)
     let rad1 = findVal(["r1", "radius 1", "bo góc 1", "bán kính 1"]);
     let rad2 = findVal(["r2", "radius 2", "bo góc 2", "bán kính 2"]);
     let rad3 = findVal(["r3", "radius 3", "bo góc 3", "bán kính 3"]);
@@ -383,7 +393,6 @@ function processFullVoiceNLP(t) {
         updatedCount++;
     }
 
-    // 6. Nhận diện 3 số liên tiếp tự do
     if (updatedCount === 0) {
         let rawNums = str.match(/-?\d+(,\d+)?/g);
         if (rawNums && rawNums.length >= 3) {
@@ -489,8 +498,12 @@ function help() { window.open('help.html', '_blank'); }
 function library() { openLibraryModal(); }
 
 // ==========================================================================
-// 5. LIBRARY MANAGEMENT (FIREBASE SYNC, MODAL, EDIT, DELETE & FILTERS)
+// 5. LIBRARY MANAGEMENT & TOOLS (DOWNLOAD, SECURITY & FILTERS)
 // ==========================================================================
+function downloadTool() {
+    window.open(GOOGLE_DRIVE_TOOL_LINK, '_blank');
+}
+
 function openLibraryModal() {
     const modal = document.getElementById('libraryModal');
     if (modal) modal.classList.add('active');
@@ -504,6 +517,7 @@ function closeLibraryModal() {
 }
 
 function toggleAddForm() {
+    if (!verifyAdmin()) return;
     const card = document.getElementById('addFormCard');
     if (card) card.style.display = card.style.display === 'none' ? 'flex' : 'none';
 }
@@ -556,9 +570,9 @@ function updateBadges() {
     setBadge('badge-dept-piping', count('dept', 'piping'));
     setBadge('badge-dept-electrical', count('dept', 'electrical'));
     setBadge('badge-dept-outfitting', count('dept', 'outfitting'));
+    setBadge('badge-dept-others', count('dept', 'others'));
 }
 
-// Render chuẩn UI ảnh với trạng thái Trống thư mục (Empty State)
 function renderDocuments(list) {
     const container = document.getElementById('docList');
     if (!container) return;
@@ -569,7 +583,7 @@ function renderDocuments(list) {
             <div class="empty-state" style="text-align: center; padding: 50px 20px; background: #161b2e; border: 2px dashed #232a45; border-radius: 14px; margin-top: 10px;">
                 <div class="empty-icon" style="font-size: 42px; margin-bottom: 10px; opacity: 0.8;">📁</div>
                 <div class="empty-title" style="font-size: 18px; font-weight: 600; color: #cbd5e1;">Thư mục trống</div>
-                <div class="empty-sub" style="font-size: 13px; color: #64748b; margin-top: 6px;">Chưa có tài liệu nào thuộc danh mục này. Bấm "<b>+ Add</b>" để thêm mới!</div>
+                <div class="empty-sub" style="font-size: 13px; color: #64748b; margin-top: 6px;">Chưa có tài liệu nào thuộc danh mục này. Phím "<b>+ Add</b>" để thêm mới!</div>
             </div>
         `;
         return;
@@ -607,13 +621,8 @@ function renderDocuments(list) {
 
         const openBtn = document.createElement('button');
         openBtn.className = 'btn btn-purple btn-open-purple';
-        openBtn.innerHTML = '📂 Open';
+        openBtn.innerHTML = '📁 Open';
         openBtn.onclick = () => openDocLink(item.link);
-
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn btn-amber';
-        editBtn.innerHTML = '✏️ Edit';
-        editBtn.onclick = () => editDoc(item.id);
 
         const delBtn = document.createElement('button');
         delBtn.className = 'btn btn-delete btn-delete-red';
@@ -621,7 +630,6 @@ function renderDocuments(list) {
         delBtn.onclick = () => deleteDoc(item.id);
 
         actions.appendChild(openBtn);
-        actions.appendChild(editBtn);
         actions.appendChild(delBtn);
 
         card.appendChild(left);
@@ -684,6 +692,8 @@ async function addDocument() {
 }
 
 function editDoc(id) {
+    if (!verifyAdmin()) return;
+
     const docItem = documents.find(d => d.id === id);
     if (!docItem) return;
 
@@ -726,6 +736,8 @@ function cancelEdit() {
 }
 
 async function deleteDoc(id) {
+    if (!verifyAdmin()) return;
+
     if (confirm('Bạn có chắc muốn xóa tài liệu này?')) {
         try {
             await window.fs.deleteDoc(window.fs.doc(window.db, "documents", id));
@@ -737,6 +749,8 @@ async function deleteDoc(id) {
 }
 
 async function clearAllDocs() {
+    if (!verifyAdmin()) return;
+
     if (documents.length === 0) {
         alert('Thư viện đang trống!');
         return;
