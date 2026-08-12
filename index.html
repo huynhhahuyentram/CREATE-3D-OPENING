@@ -3,234 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Opening Tool Pro</title>
+    <title>3D Opening & Macro Generator</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK (Version 9+ Compatibility Module) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script>
+        // Cấu hình Firebase Config của bạn tại đây
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        window.db = firebase.firestore();
+        window.fs = {
+            collection: (db, name) => db.collection(name),
+            doc: (db, name, id) => db.collection(name).doc(id),
+            onSnapshot: (ref, callback, errCb) => ref.onSnapshot(callback, errCb),
+            addDoc: (ref, data) => ref.add(data),
+            updateDoc: (ref, data) => ref.update(data),
+            deleteDoc: (ref) => ref.delete()
+        };
+    </script>
 </head>
 <body>
 
-<div class="app">
-    <canvas id="view"></canvas>
-
-    <div class="panel">
-        <div class="row">
-            <div class="box">
-                <h3>📐 Position</h3>
-                <div class="input-list">
-                    <div class="input-item">
-                        <label>X [mm]</label>
-                        <input id="px" type="number" value="0">
-                    </div>
-                    <div class="input-item">
-                        <label>Y [mm]</label>
-                        <input id="py" type="number" value="0">
-                    </div>
-                    <div class="input-item">
-                        <label>Z [mm]</label>
-                        <input id="pz" type="number" value="0">
-                    </div>
-                </div>
+    <div class="main-layout">
+        <!-- Panel bên trái: Nhập thông số và Vẽ Canvas 3D -->
+        <div class="left-panel">
+            <h2>3D Model Viewer</h2>
+            <div class="canvas-container">
+                <canvas id="view"></canvas>
             </div>
 
-            <div class="box">
-                <h3>📏 Dimension</h3>
-                <div class="input-list">
-                    <div class="input-item">
-                        <label>Length [mm]</label>
-                        <input id="dx" type="number" value="0">
-                    </div>
-                    <div class="input-item">
-                        <label>Width [mm]</label>
-                        <input id="dy" type="number" value="0">
-                    </div>
-                    <div class="input-item">
-                        <label>Height [mm]</label>
-                        <input id="dz" type="number" value="0">
-                    </div>
-                </div>
+            <div class="ori-selector ori">
+                <span>Trục Tọa Độ (ORI):</span>
+                <button id="oz" class="active" onclick="setOri('Z')">Z</button>
+                <button id="ox" onclick="setOri('X')">X</button>
+                <button id="oy" onclick="setOri('Y')">Y</button>
             </div>
-        </div>
 
-        <div class="box">
-            <h3>🔘 Corner Radius (mm)</h3>
-            <div class="radius">
-                <label>R1<input id="r1" type="number" value="150"></label>
-                <label>R2<input id="r2" type="number" value="150"></label>
-                <label>R3<input id="r3" type="number" value="150"></label>
-                <label>R4<input id="r4" type="number" value="150"></label>
+            <div class="input-grid">
+                <div class="input-group"><label>Pos X:</label><input type="number" id="px" value="0"></div>
+                <div class="input-group"><label>Pos Y:</label><input type="number" id="py" value="0"></div>
+                <div class="input-group"><label>Pos Z:</label><input type="number" id="pz" value="0"></div>
+                
+                <div class="input-group"><label>Length (L):</label><input type="number" id="dx" value="500"></div>
+                <div class="input-group"><label>Width (W):</label><input type="number" id="dy" value="300"></div>
+                <div class="input-group"><label>Height (H):</label><input type="number" id="dz" value="200"></div>
+
+                <div class="input-group"><label>R1:</label><input type="number" id="r1" value="150"></div>
+                <div class="input-group"><label>R2:</label><input type="number" id="r2" value="150"></div>
+                <div class="input-group"><label>R3:</label><input type="number" id="r3" value="150"></div>
+                <div class="input-group"><label>R4:</label><input type="number" id="r4" value="150"></div>
             </div>
-        </div>
 
-        <div class="box">
-            <h3>🧭 Orientation</h3>
-            <div class="ori">
-                <button onclick="setOri('X')" id="ox">X</button>
-                <button onclick="setOri('Y')" id="oy">Y</button>
-                <button onclick="setOri('Z')" id="oz" class="active">Z</button>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="voice()">🎤 Nói Voice NLP</button>
+                <button class="btn btn-success" onclick="saveFile()">💾 Xuất File Macro</button>
+                <button class="btn btn-secondary" onclick="reset()">🔄 Reset</button>
+                <button class="btn btn-info" onclick="openLibraryModal()">📚 Thư Viện</button>
             </div>
-        </div>
 
-        <div class="btns">
-            <button class="export" onclick="saveFile()">📤 Export</button>
-            <button class="voice" onclick="voice()" id="voiceBtn">🎤 Voice</button>
-            <button class="reset" onclick="reset()">🔄 Reset</button>
-            <button class="library" onclick="openLibraryModal()">📚 Library</button>
-            <button class="help" onclick="help()">❓ Help</button>
-        </div>
-
-        <div id="chat">
-            <div><span class="status-dot green"></span>Ready</div>
+            <div id="chat" class="chat-log"></div>
         </div>
     </div>
-</div>
 
-<!-- DOCUMENT LIBRARY MODAL MODIFIED TO MATCH IMAGE DESIGN -->
-<div id="libraryModal" class="modal-overlay">
-    <div class="modal-content modal-lib-layout">
-        <input type="hidden" id="editingDocId" value="">
-
-        <!-- Modal Header -->
-        <div class="modal-header">
-            <h2>📚 LIBRARY</h2>
-            <button class="close-btn" onclick="closeLibraryModal()">&times;</button>
-        </div>
-
-        <!-- Alert Status Bar -->
-        <div class="status-alert-green">
-            <div class="status-left">
-                <span class="check-box">✓</span>
-                <span id="docCountText">Loaded 0 documents</span>
+    <!-- Modal Thư Viện (LIBRARY MODAL) -->
+    <div id="libraryModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span>📚</span> LIBRARY
+                </div>
+                <button class="close-icon-btn" onclick="closeLibraryModal()">✕</button>
             </div>
-            <button class="btn-refresh" onclick="refreshDocs()">🔄 Refresh</button>
-        </div>
 
-        <!-- Main Grid: Sidebar + Main Content -->
-        <div class="lib-body-grid">
-            <!-- Left Sidebar -->
-            <div class="lib-sidebar">
-                <div class="sidebar-section">
-                    <div class="sidebar-title">📁 CATEGORIES</div>
-                    <button class="nav-item active" data-filter-type="cat" data-filter-val="all" onclick="setFilter('cat', 'all', this)">
-                        <span class="nav-icon">📄</span>
-                        <span class="nav-text">All Documents</span>
+            <div class="modal-body">
+                <!-- Sidebar danh mục -->
+                <div class="library-sidebar">
+                    <div class="sidebar-section-title">📂 CATEGORIES</div>
+                    <button class="nav-item active" onclick="setFilter('cat', 'all', this)">
+                        <span>📄 All Documents</span>
                         <span class="badge" id="badge-cat-all">0</span>
                     </button>
-                    <button class="nav-item" data-filter-type="cat" data-filter-val="standards" onclick="setFilter('cat', 'standards', this)">
-                        <span class="nav-icon">📋</span>
-                        <span class="nav-text">Rules & Standards</span>
+                    <button class="nav-item" onclick="setFilter('cat', 'standards', this)">
+                        <span>📋 Rules & Standards</span>
                         <span class="badge" id="badge-cat-standards">0</span>
                     </button>
-                    <button class="nav-item" data-filter-type="cat" data-filter-val="methods" onclick="setFilter('cat', 'methods', this)">
-                        <span class="nav-icon">🔧</span>
-                        <span class="nav-text">Methods</span>
+                    <button class="nav-item" onclick="setFilter('cat', 'methods', this)">
+                        <span>🔧 Methods</span>
                         <span class="badge" id="badge-cat-methods">0</span>
                     </button>
-                    <button class="nav-item" data-filter-type="cat" data-filter-val="experience" onclick="setFilter('cat', 'experience', this)">
-                        <span class="nav-icon">💡</span>
-                        <span class="nav-text">Experience</span>
+                    <button class="nav-item" onclick="setFilter('cat', 'experience', this)">
+                        <span>💡 Experience</span>
                         <span class="badge" id="badge-cat-experience">0</span>
                     </button>
-                </div>
 
-                <div class="sidebar-section">
-                    <div class="sidebar-title">🏗️ BY DEPARTMENT</div>
-                    <button class="nav-item" data-filter-type="dept" data-filter-val="hull" onclick="setFilter('dept', 'hull', this)">
-                        <span class="nav-icon">🚢</span>
-                        <span class="nav-text">Hull</span>
+                    <div class="sidebar-section-title">🏗️ BY DEPARTMENT</div>
+                    <button class="nav-item" onclick="setFilter('dept', 'hull', this)">
+                        <span>🚢 Hull</span>
                         <span class="badge" id="badge-dept-hull">0</span>
                     </button>
-                    <button class="nav-item" data-filter-type="dept" data-filter-val="piping" onclick="setFilter('dept', 'piping', this)">
-                        <span class="nav-icon">🔧</span>
-                        <span class="nav-text">Piping</span>
+                    <button class="nav-item" onclick="setFilter('dept', 'piping', this)">
+                        <span>🔧 Piping</span>
                         <span class="badge" id="badge-dept-piping">0</span>
                     </button>
-                    <button class="nav-item" data-filter-type="dept" data-filter-val="electrical" onclick="setFilter('dept', 'electrical', this)">
-                        <span class="nav-icon">⚡</span>
-                        <span class="nav-text">Electrical</span>
+                    <button class="nav-item" onclick="setFilter('dept', 'electrical', this)">
+                        <span>⚡ Electrical</span>
                         <span class="badge" id="badge-dept-electrical">0</span>
                     </button>
-                    <button class="nav-item" data-filter-type="dept" data-filter-val="outfitting" onclick="setFilter('dept', 'outfitting', this)">
-                        <span class="nav-icon">🛠️</span>
-                        <span class="nav-text">Outfitting</span>
+                    <button class="nav-item" onclick="setFilter('dept', 'outfitting', this)">
+                        <span>🛠️ Outfitting</span>
                         <span class="badge" id="badge-dept-outfitting">0</span>
                     </button>
+                    <button class="nav-item" onclick="setFilter('dept', 'others', this)">
+                        <span>📎 Others</span>
+                        <span class="badge" id="badge-dept-others">0</span>
+                    </button>
+
+                    <!-- Mục Tools Mới -->
+                    <div class="sidebar-section-title">⚒️ TOOLS</div>
+                    <div class="tool-item-card" onclick="downloadTool()">
+                        <div class="tool-info">
+                            <span class="tool-icon">🧊</span>
+                            <span class="tool-name">3D Opening Tool</span>
+                        </div>
+                        <button class="btn-download-icon" title="Download Tool">⬇</button>
+                    </div>
+                    <div class="tool-sub-text">Click to download tool</div>
+                </div>
+
+                <!-- Nội dung chính bên phải -->
+                <div class="library-content">
+                    <div class="status-bar">
+                        <div class="status-text">
+                            <span class="check-icon">✔</span>
+                            <span id="docCountText">Loaded 0 documents</span>
+                        </div>
+                        <button class="btn-refresh" onclick="refreshDocs()">🔄 Refresh</button>
+                    </div>
+
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="searchInput" placeholder="Search documents..." oninput="filterDocs()">
+                        </div>
+                        <button class="btn-voice-search" onclick="startVoiceSearch()" title="Tìm kiếm giọng nói">🎤</button>
+                        <button class="btn-add" onclick="toggleAddForm()">➕ Add</button>
+                    </div>
+
+                    <!-- Form Thêm / Sửa Tài Liệu -->
+                    <div id="addFormCard" class="add-form-card" style="display: none;">
+                        <input type="hidden" id="editingDocId">
+                        <input type="text" id="docNameInput" placeholder="Tên tài liệu..." class="form-control">
+                        <input type="text" id="docLinkInput" placeholder="URL Đường dẫn tài liệu..." class="form-control">
+                        <input type="text" id="docTagsInput" placeholder="Thẻ tags (phân cách bằng dấu phẩy)..." class="form-control">
+                        <div class="form-row">
+                            <select id="docCategorySelect" class="form-control">
+                                <option value="standards">Rules & Standards</option>
+                                <option value="methods">Methods</option>
+                                <option value="experience">Experience</option>
+                                <option value="others">Others</option>
+                            </select>
+                            <select id="docDepartmentSelect" class="form-control">
+                                <option value="hull">Hull</option>
+                                <option value="piping">Piping</option>
+                                <option value="electrical">Electrical</option>
+                                <option value="outfitting">Outfitting</option>
+                                <option value="others">Others</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button id="saveDocBtn" class="btn btn-purple" onclick="addDocument()">➕ Add</button>
+                            <button id="cancelEditBtn" class="btn btn-secondary" onclick="cancelEdit()" style="display: none;">Hủy</button>
+                        </div>
+                    </div>
+
+                    <!-- Danh sách các tài liệu -->
+                    <div id="docList" class="doc-list"></div>
                 </div>
             </div>
 
-            <!-- Main Content Area -->
-            <div class="lib-main">
-                <!-- Search and Add Controls -->
-                <div class="lib-toolbar">
-                    <div class="search-input-wrapper">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" id="searchInput" placeholder="Search documents..." onkeyup="filterDocs()">
-                    </div>
-                    <button class="btn-icon-cyan" onclick="startVoiceSearch()" title="Voice Search">🎤</button>
-                    <button class="btn-add-purple" onclick="toggleAddForm()">➕ Add</button>
-                </div>
-
-                <!-- Add/Edit Document Collapsible Form -->
-                <div class="add-form-card" id="addFormCard" style="display: none;">
-                    <input type="text" id="docNameInput" placeholder="Document Name...">
-                    <input type="text" id="docLinkInput" placeholder="Drive Link...">
-                    <input type="text" id="docTagsInput" placeholder="Tags (comma separated)...">
-                    <div class="form-row">
-                        <select id="docCategorySelect">
-                            <option value="standards">Rules & Standards</option>
-                            <option value="methods">Methods</option>
-                            <option value="experience">Experience</option>
-                            <option value="others" selected>Others</option>
-                        </select>
-                        <select id="docDepartmentSelect">
-                            <option value="hull">Hull</option>
-                            <option value="piping">Piping</option>
-                            <option value="electrical">Electrical</option>
-                            <option value="outfitting">Outfitting</option>
-                            <option value="others" selected>Others</option>
-                        </select>
-                        <button class="btn-save" id="saveDocBtn" onclick="addDocument()">💾 Save</button>
-                        <button class="btn-cancel" id="cancelEditBtn" onclick="cancelEdit()">✕ Cancel</button>
-                    </div>
-                </div>
-
-                <!-- Document List -->
-                <div class="doc-list-scroll" id="docList">
-                    <!-- Javascript renders items here -->
-                </div>
+            <div class="modal-footer">
+                <button class="btn-close-footer" onclick="closeLibraryModal()">Close</button>
             </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="modal-footer">
-            <button class="btn-close-dark" onclick="closeLibraryModal()">Close</button>
         </div>
     </div>
-</div>
 
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-  import { 
-    getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc 
-  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAbbPaSakecB3z-dqQ3FfhS6prHKICCFeA",
-    authDomain: "d-opening-tool.firebaseapp.com",
-    projectId: "d-opening-tool",
-    storageBucket: "d-opening-tool.firebasestorage.app",
-    messagingSenderId: "242030973735",
-    appId: "1:242030973735:web:d48715738f5709963e4f02",
-    measurementId: "G-M384KGE56Z"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.db = db;
-  window.fs = { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc };
-</script>
-
-<script src="script.js"></script>
-
+    <script src="script.js"></script>
 </body>
 </html>
