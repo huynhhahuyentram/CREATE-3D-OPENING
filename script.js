@@ -9,11 +9,11 @@ let currentFilter = {
     val: 'all'
 };
 
-// Mật khẩu bảo mật cho các thao tác Thêm/Sửa/Xóa
+// Mật khẩu bảo mật cho các thao tác Sửa / Xóa
 const ADMIN_PASSWORD = "kttt1234";
 
 // Link Google Drive tải phần mềm Tool 3D
-const GOOGLE_DRIVE_TOOL_LINK = "https://drive.google.com/"; // Thay bằng URL Google Drive thực tế của bạn
+const GOOGLE_DRIVE_TOOL_LINK = "https://drive.google.com/";
 
 function verifyAdmin() {
     let password = prompt("Vui lòng nhập mật khẩu quản trị để thực hiện thao tác này:");
@@ -498,7 +498,7 @@ function help() { window.open('help.html', '_blank'); }
 function library() { openLibraryModal(); }
 
 // ==========================================================================
-// 5. LIBRARY MANAGEMENT & TOOLS (DOWNLOAD, SECURITY & FILTERS)
+// 5. LIBRARY MANAGEMENT & TOOLS (PUBLIC ADD, PROTECTED DELETE/EDIT & FIREBASE)
 // ==========================================================================
 function downloadTool() {
     window.open(GOOGLE_DRIVE_TOOL_LINK, '_blank');
@@ -516,10 +516,20 @@ function closeLibraryModal() {
     cancelEdit();
 }
 
-function toggleAddForm() {
-    if (!verifyAdmin()) return;
+// Mở form Thêm tài liệu công khai (Ai cũng có thể thêm)
+function openAddFormPublic() {
+    cancelEdit();
     const card = document.getElementById('addFormCard');
-    if (card) card.style.display = card.style.display === 'none' ? 'flex' : 'none';
+    if (card) {
+        card.style.display = 'flex';
+    }
+}
+
+function toggleAddForm() {
+    const card = document.getElementById('addFormCard');
+    if (card) {
+        card.style.display = card.style.display === 'none' ? 'flex' : 'none';
+    }
 }
 
 function setFilter(type, val, el) {
@@ -624,12 +634,20 @@ function renderDocuments(list) {
         openBtn.innerHTML = '📁 Open';
         openBtn.onclick = () => openDocLink(item.link);
 
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-amber';
+        editBtn.style.padding = '6px 10px';
+        editBtn.style.fontSize = '12px';
+        editBtn.textContent = '✏️ Edit';
+        editBtn.onclick = () => editDoc(item.id);
+
         const delBtn = document.createElement('button');
         delBtn.className = 'btn btn-delete btn-delete-red';
         delBtn.textContent = '✕';
         delBtn.onclick = () => deleteDoc(item.id);
 
         actions.appendChild(openBtn);
+        actions.appendChild(editBtn);
         actions.appendChild(delBtn);
 
         card.appendChild(left);
@@ -655,6 +673,7 @@ function openDocLink(urlStr) {
     }
 }
 
+// Hàm thêm tài liệu công khai / Sửa tài liệu bảo mật
 async function addDocument() {
     const editingIdEl = document.getElementById('editingDocId');
     const editingId = editingIdEl ? editingIdEl.value : '';
@@ -667,7 +686,7 @@ async function addDocument() {
 
     const name = nameInput ? nameInput.value.trim() : '';
     const link = linkInput ? linkInput.value.trim() : '';
-    const tags = tagsInput && tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()) : [];
+    const tags = tagsInput && tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()).filter(Boolean) : [];
     const category = catSelect ? catSelect.value : 'standards';
     const department = deptSelect ? deptSelect.value : 'hull';
 
@@ -677,17 +696,33 @@ async function addDocument() {
     }
 
     try {
+        if (!window.db || !window.fs) {
+            alert("Chưa kết nối tới cơ sở dữ liệu Firebase!");
+            return;
+        }
+
         if (editingId) {
+            // Sửa tài liệu (Đã xác thực admin từ nút Edit)
             const docRef = window.fs.doc(window.db, "documents", editingId);
             await window.fs.updateDoc(docRef, { name, link, tags, category, department });
+            alert("Đã cập nhật tài liệu thành công!");
         } else {
+            // Thêm tài liệu mới (Công khai)
             const docsRef = window.fs.collection(window.db, "documents");
-            await window.fs.addDoc(docsRef, { name, link, tags, category, department });
+            await window.fs.addDoc(docsRef, { 
+                name, 
+                link, 
+                tags, 
+                category, 
+                department,
+                createdAt: new Date().toISOString()
+            });
+            alert("Đã thêm tài liệu thành công!");
         }
         cancelEdit();
     } catch (error) {
-        console.error("Lỗi khi lưu Firebase:", error);
-        alert("Lỗi khi lưu dữ liệu!");
+        console.error("Lỗi khi lưu dữ liệu lên Firebase:", error);
+        alert("Lỗi khi kết nối Firebase: " + error.message);
     }
 }
 
@@ -697,7 +732,7 @@ function editDoc(id) {
     const docItem = documents.find(d => d.id === id);
     if (!docItem) return;
 
-    toggleAddForm();
+    openAddFormPublic();
 
     setInputValue('editingDocId', docItem.id);
     setInputValue('docNameInput', docItem.name || '');
@@ -738,12 +773,17 @@ function cancelEdit() {
 async function deleteDoc(id) {
     if (!verifyAdmin()) return;
 
-    if (confirm('Bạn có chắc muốn xóa tài liệu này?')) {
+    if (confirm('Bạn có chắc chắn muốn xóa tài liệu này không?')) {
         try {
+            if (!window.db || !window.fs) {
+                alert("Không thể kết nối Firestore!");
+                return;
+            }
             await window.fs.deleteDoc(window.fs.doc(window.db, "documents", id));
+            alert("Đã xóa tài liệu!");
         } catch (error) {
             console.error("Lỗi xóa document:", error);
-            alert("Lỗi xóa tài liệu!");
+            alert("Lỗi xóa tài liệu: " + error.message);
         }
     }
 }
@@ -756,14 +796,16 @@ async function clearAllDocs() {
         return;
     }
     
-    if (confirm('Bạn có chắc chắn muốn xóa tất cả tài liệu không?')) {
+    if (confirm('CẢNH BÁO: Bạn có chắc chắn muốn XÓA TOÀN BỘ tài liệu không?')) {
         try {
             for (let item of documents) {
                 await window.fs.deleteDoc(window.fs.doc(window.db, "documents", item.id));
             }
             cancelEdit();
+            alert("Đã xóa toàn bộ thư viện!");
         } catch (err) {
             console.error("Clear all error:", err);
+            alert("Lỗi khi xóa dữ liệu!");
         }
     }
 }
